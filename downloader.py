@@ -1,5 +1,5 @@
 from config import Config as con
-from utils import download_course, download_track, get_completed_tracks, get_completed_courses, get_all_courses
+from utils import download_course, download_track, get_completed_tracks, get_completed_courses
 import colorama
 import sys
 from helper import bcolors
