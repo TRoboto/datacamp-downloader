@@ -1,4 +1,4 @@
-from config import config as con
+from config import Config as con
 import sys
 import os
 import helper
@@ -6,10 +6,10 @@ from helper import bcolors
 from bs4 import BeautifulSoup
 import json
 import re
-from classes import track
+from classes import Track
 
 
-def download_track(track, folder):
+def download_track(track, folder, videos_download):
     page = con.session.get(helper.embbed_link(track.link))
     soup = BeautifulSoup(page.text, 'html.parser')
     all_courses = soup.findAll('a', {
@@ -18,33 +18,35 @@ def download_track(track, folder):
     })
     track_title = soup.find('title').getText().split('|')[0].strip()
     folder = os.path.join(folder, track_title)
-    
+
     all_links = ['https://www.datacamp.com' + x['href'] for x in all_courses]
     sys.stdout.write(
         f'{bcolors.BKBLUE}  {track_title}  {bcolors.BKENDC}\n')
     for i, link in enumerate(all_links):
-        download_course(link, folder, i + 1)
+        download_course(link, folder, videos_download, i + 1)
 
 
-def download_course(url, folder, number=None):
+def download_course(url, folder, videos_download, number=None):
     course_id, title = get_course_id_and_title(url)
+    title = helper.format_filename(title)
     if number is not None:
         title = str(number) + ". " + title
     sys.stdout.write(
         f'{bcolors.BKGREEN} {title}  {bcolors.BKENDC}\n')
     download_slides(course_id, os.path.join(
         folder, title))
-    download_videos(course_id, os.path.join(
-        folder, title))
+    if videos_download:
+        download_videos(course_id, os.path.join(
+            folder, title))
 
 
 def download_slides(course_id, folder):
     page = con.session.get('https://www.datacamp.com/courses/{}/continue'
                            .format(course_id))
     slide_links = set(re.findall(
-        r'(https://s3.[/|\w|:|.|-]+[^/])&', page.text))
+        r'(https?://s3.[/|\w|:|.|-]+[^/])&', page.text))
     slide_links = slide_links.union(set(re.findall(
-        r'(https://projector[/|\w|:|.|-]+[^/])&', page.text)))
+        r'(https?://projector[/|\w|:|.|-]+[^/])&', page.text)))
     if len(slide_links) == 0:
         sys.stdout.write(
             f'{bcolors.FAIL}No slides found!{bcolors.ENDC}\n')
@@ -65,7 +67,7 @@ def download_videos(course_id, folder):
     display_text = True
     for chapter in chapters['user_chapters']:
         page = con.session.get('https://www.datacamp.com/courses/{}/chapters/{}/continue'
-                               .format(course_id, chapter['chapter_id']), timeout=50)
+                               .format(course_id, chapter['chapter_id']))
         video_ids = set(re.findall(
             r';(course_{}_[\d|\w]+)&'.format(course_id), page.text))
         video_type = 1
@@ -75,8 +77,8 @@ def download_videos(course_id, folder):
             video_type = 2
         if len(video_ids) == 0:
             sys.stdout.write(
-            f'{bcolors.FAIL}No videos found!{bcolors.ENDC}\n')
-            break
+                f'{bcolors.FAIL}No videos found!{bcolors.ENDC}\n')
+            return
 
         if display_text:
             sys.stdout.write(
@@ -84,20 +86,25 @@ def download_videos(course_id, folder):
             display_text = False
 
         for video_id in video_ids:
-            if video_type == 1:
-                video_page = con.session.get(
-                    'https://projector.datacamp.com/?projector_key=' + video_id, timeout=50)
-            elif video_type == 2:
-                video_page = con.session.get(
-                    'https://projector.datacamp.com/?video_hls=' + video_id, timeout=50)
-
+            while True:
+                try:
+                    if video_type == 1:
+                        video_page = con.session.get(
+                            'https://projector.datacamp.com/?projector_key=' + video_id)
+                    elif video_type == 2:
+                        video_page = con.session.get(
+                            'https://projector.datacamp.com/?video_hls=' + video_id)
+                except:
+                    helper.handle_error(con)
+                    continue
+                break
             soup = BeautifulSoup(video_page.text, 'html.parser')
             video_url = json.loads(soup.find(
                 "input", {"id": "videoData"})['value'])
 
             link = video_url['video_mp4_link']
 
-            if link == None:
+            if link is None:
                 sys.stdout.write(
                     f'{bcolors.FAIL}Videos cannot be downloaded!{bcolors.ENDC}\n')
                 return
@@ -126,9 +133,6 @@ def download_videos(course_id, folder):
                 continue
             helper.download_file(con, link, file_path)
 
-    # sys.stdout.write(
-    #     f'{bcolors.OKGREEN}Videos has been successfully downloaded!{bcolors.ENDC}\n')
-
 
 def get_chapter_content(course_id, chapter_id):
     page = con.session.get('https://campus-api.datacamp.com/api/courses/{}/chapters/{}/progress'
@@ -150,12 +154,19 @@ def get_course_id(course_url):
 def get_course_id_and_title(course_url):
     page = con.session.get(helper.embbed_link(course_url))
     soup = BeautifulSoup(page.text, 'html.parser')
-    title = soup.find('title').getText().split('|')[0].strip()
+    try:
+        title = soup.find('title').getText().split('|')[0].strip()
+    except Exception as e:
+        message = e.args
+        return
     id = soup.find(
         "input", {"name": "course_id"})['value']
     return id, title
 
+
 completed_tracks = None
+
+
 def get_completed_tracks():
     global completed_tracks
     if completed_tracks is not None:
@@ -170,11 +181,14 @@ def get_completed_tracks():
     for i in range(len(tracks_link)):
         link = 'https://www.datacamp.com' + tracks_link[i]['href']
         tracks.append(
-            track(i+1,tracks_name[i].getText().replace('\n', ' ').strip(), link))
+            Track(i + 1, tracks_name[i].getText().replace('\n', ' ').strip(), link))
     completed_tracks = tracks
     return tracks
 
+
 completed_courses = None
+
+
 def get_completed_courses():
     global completed_courses
     if completed_courses is not None:
@@ -188,6 +202,6 @@ def get_completed_courses():
     for i in range(len(courses_link)):
         link = 'https://www.datacamp.com' + courses_link[i]['href']
         courses.append(
-            track(i+1,courses_name[i].getText().strip(), link))
+            Track(i + 1, courses_name[i].getText().strip(), link))
     completed_courses = courses
     return courses

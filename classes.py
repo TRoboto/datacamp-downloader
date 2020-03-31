@@ -1,6 +1,5 @@
-class track:
-    def __init__(self, id, name, link):
+class Track:
+    def __init__(self, track_id, name, link):
         self.name = name
         self.link = link
-        self.id = id
-
+        self.id = track_id
