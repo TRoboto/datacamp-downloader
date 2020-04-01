@@ -48,7 +48,7 @@ pip install -r requirements.txt
 ### How to use
 1. First you should configure your token to be able to download your contents, run:
 ```
-python download.py settoken YOUR_DATACAMP_AUTH_TOKEN
+python downloader.py settoken YOUR_DATACAMP_AUTH_TOKEN
 ```
 Datacamp authentication token can be found in Datacamp website browser _cookies_. 
 To get your Datacamp authentication, follow these steps:
