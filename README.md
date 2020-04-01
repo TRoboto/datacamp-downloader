@@ -43,7 +43,7 @@ pip install -r requirements.txt
 `list` : List your completed **tracks**.  
 `listc` : List your completed **courses**.  
 `download` : Download **slides** and any available additional contents.  
-`downloadv` : **Download **videos, slides** and any available additional contents.
+`downloadv` : Download **videos, slides** and any available additional contents.
 
 ### How to use
 1. First you should configure your token to be able to download your contents, run:
