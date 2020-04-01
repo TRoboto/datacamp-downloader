@@ -118,6 +118,10 @@ To download the second course directly on `C` drive, run:
 ```
 >>> download 'C:/' 1
 ```
+To download the first and the third course directly on `C` drive, run:
+```
+>>> download 'C:/' 1 3
+```
 To download all three courses directly on `C` drive, run:
 ```
 >>> download 'C:/' 1-3
