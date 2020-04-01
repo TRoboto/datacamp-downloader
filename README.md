@@ -1,4 +1,5 @@
 # Datacamp Downloader
+[![MIT License](https://img.shields.io/apm/l/atomic-design-ui.svg?)](https://github.com/TRoboto/datacamp-downloader/blob/master/LICENSE)
 
 ## Table of Contents
 - [Datacamp Downloader](#datacamp-downloader)
