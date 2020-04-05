@@ -67,7 +67,7 @@ To get your Datacamp authentication, follow these steps:
   4. Find `_dct` key, its **Value** is the Datacamp authentication token.
 
 **Security Note**  
-Datacamp authentication token is a secret key to is unique to you and you should not share it publicly.
+Datacamp authentication token is a secret key and is unique to you. **You should not share it publicly**.
 
 Then if you have an active subscription, you should see the following:
 ```
