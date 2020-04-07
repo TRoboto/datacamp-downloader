@@ -1,19 +1,23 @@
-from config import Config as con
-from utils import download_course, download_track, get_completed_tracks, get_completed_courses
-import colorama
 import sys
-from helper import bcolors
 import threading
 import time
 
+import colorama
+
+from config import Config as con
+from helper import bcolors
+from utils import download_course, download_track, get_completed_tracks, get_completed_courses
+
 
 def main(argv):
+    if argv[0] == 'settoken':
+        print_dash()
+        con.set_token(argv[1])
+    else:
+        return
+
     if not con.active:
-        if argv[0] == 'settoken':
-            print_dash()
-            con.settoken(argv[1])
-        else:
-            return
+        return
     print_dash()
     print_desc()
     while True:

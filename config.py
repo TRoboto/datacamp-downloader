@@ -1,4 +1,5 @@
 import requests
+
 from helper import bcolors
 
 
@@ -9,7 +10,7 @@ class Config:
     token = ''
 
     @staticmethod
-    def settoken(token):
+    def set_token(token):
         Config.token = token
         Config.set_new_session()
         page = Config.session.get('https://www.datacamp.com/api/users/signed_in')
