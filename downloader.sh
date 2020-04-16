@@ -3,7 +3,7 @@
 # Run DCDownloader Docker image with options
 
 NAME="dc_downloader"
-IMAGE="dc_downloader"
+IMAGE="amughrabi/dc_downloader"
 
 # Finally run
 sudo docker stop ${NAME} > /dev/null 2>&1
