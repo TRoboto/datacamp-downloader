@@ -1,5 +1,7 @@
 # Datacamp Downloader
-[![MIT License](https://img.shields.io/apm/l/atomic-design-ui.svg?)](https://github.com/TRoboto/datacamp-downloader/blob/master/LICENSE)
+[![MIT License](https://img.shields.io/apm/l/atomic-design-ui.svg?)](https://github.com/TRoboto/datacamp-downloader/blob/master/LICENSE)  
+
+**Docker version of this repo can be found [here](https://github.com/amughrabi/datacamp-downloader)**
 
 ## Table of Contents
 - [Datacamp Downloader](#datacamp-downloader)
