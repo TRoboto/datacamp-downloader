@@ -6,7 +6,7 @@ from helper import bcolors
 from bs4 import BeautifulSoup
 import json
 import re
-from classes import Track
+from classes import Template
 
 
 def download_track(track, folder, videos_download):
@@ -174,11 +174,6 @@ def get_course_chapters(course_id):
     return page.json()
 
 
-def get_course_id(course_url):
-    page = con.session.get(course_url)
-    return re.search(r'/course_(\d+)/', page.text).group(1)
-
-
 def get_course_id_and_title(course_url):
     page = con.session.get(helper.fix_link(course_url))
     soup = BeautifulSoup(page.text, 'html.parser')
@@ -187,8 +182,8 @@ def get_course_id_and_title(course_url):
     except Exception as e:
         message = e.args
         return
-    id = re.search(r'/course_(\d+)/', page.text).group(1)
-    return id, title
+    course_id = re.search(r'/course_(\d+)/', page.text).group(1)
+    return course_id, title
 
 
 @helper.memoize
@@ -203,7 +198,7 @@ def get_completed_tracks():
     for i in range(len(tracks_link)):
         link = 'https://www.datacamp.com' + tracks_link[i]['href']
         tracks.append(
-            Track(i + 1, tracks_name[i].getText().replace('\n', ' ').strip(), link))
+            Template(i + 1, tracks_name[i].getText().replace('\n', ' ').strip(), link))
     return tracks
 
 
@@ -218,5 +213,5 @@ def get_completed_courses():
     for i in range(len(courses_link)):
         link = 'https://www.datacamp.com' + courses_link[i]['href']
         courses.append(
-            Track(i + 1, courses_name[i].getText().strip(), link))
+            Template(i + 1, courses_name[i].getText().strip(), link))
     return courses

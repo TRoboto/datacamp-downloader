@@ -6,14 +6,14 @@ from helper import bcolors
 class Config:
     session = None
     data = {}
-    active = False
+    sub_active = False
     token = ''
 
-    @staticmethod
-    def set_token(token):
-        Config.token = token
-        Config.set_new_session()
-        page = Config.session.get('https://www.datacamp.com/api/users/signed_in')
+    @classmethod
+    def set_token(cls, token):
+        cls.token = token
+        cls.set_new_session()
+        page = cls.session.get('https://www.datacamp.com/api/users/signed_in')
         try:
             data = page.json()
         except:
@@ -26,11 +26,11 @@ class Config:
         else:
             print(f'{bcolors.FAIL}No active subscription found{bcolors.ENDC}')
 
-        Config.data = data
-        Config.active = data['has_active_subscription']
+        cls.data = data
+        cls.sub_active = data['has_active_subscription']
 
-    @staticmethod
-    def set_new_session():
+    @classmethod
+    def set_new_session(cls):
         headers = {
             'Accept-Encoding': 'gzip, deflate, sdch',
             'Accept-Language': 'en-US,en;q=0.8',
@@ -39,9 +39,9 @@ class Config:
             'Cache-Control': 'max-age=0',
             'Connection': 'keep-alive',
         }
-        cookie = {'name': '_dct', 'value': Config.token, 'domain': '.datacamp.com',
+        cookie = {'name': '_dct', 'value': cls.token, 'domain': '.datacamp.com',
                   'secure': True}
         s = requests.Session()
         s.headers = headers
         s.cookies.set(**cookie)
-        Config.session = s
+        cls.session = s

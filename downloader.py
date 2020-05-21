@@ -16,7 +16,7 @@ def main(argv):
     else:
         return
 
-    if not con.active:
+    if not con.sub_active:
         return
     print_dash()
     print_desc()

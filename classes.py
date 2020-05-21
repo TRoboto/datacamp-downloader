@@ -1,5 +1,5 @@
-class Track:
-    def __init__(self, track_id, name, link):
+class Template:
+    def __init__(self, id, name, link):
         self.name = name
         self.link = link
-        self.id = track_id
+        self.id = id
