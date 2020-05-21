@@ -2,6 +2,7 @@ import os
 import sys
 import time
 import string
+from typing import Dict, Any
 
 
 class bcolors:
@@ -74,7 +75,7 @@ def mkdir(location):
             os.mkdir(location)
 
 
-def embbed_link(link):
+def fix_link(link):
     if '?' in link:
         link += '&embedded=true'
     else:
@@ -83,6 +84,20 @@ def embbed_link(link):
 
 
 def handle_error(con):
-    print(bcolors.FAIL + "Error occured, trying again...")
+    print(bcolors.FAIL + "Error occurred, trying again...")
     con.set_new_session()
     time.sleep(5)
+
+
+def memoize(func):
+    memo = []
+
+    def wrapper():
+        if not memo:
+            value = func()
+            for x in value:
+                memo.append(x)
+        return memo
+
+    return wrapper
+

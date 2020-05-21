@@ -10,7 +10,7 @@ from classes import Track
 
 
 def download_track(track, folder, videos_download):
-    page = con.session.get(helper.embbed_link(track.link))
+    page = con.session.get(helper.fix_link(track.link))
     soup = BeautifulSoup(page.text, 'html.parser')
     all_courses = soup.findAll('a', {
         'href': re.compile('^/courses/'),
@@ -180,7 +180,7 @@ def get_course_id(course_url):
 
 
 def get_course_id_and_title(course_url):
-    page = con.session.get(helper.embbed_link(course_url))
+    page = con.session.get(helper.fix_link(course_url))
     soup = BeautifulSoup(page.text, 'html.parser')
     try:
         title = soup.find('title').getText().split('|')[0].strip()
@@ -191,13 +191,8 @@ def get_course_id_and_title(course_url):
     return id, title
 
 
-completed_tracks = None
-
-
+@helper.memoize
 def get_completed_tracks():
-    global completed_tracks
-    if completed_tracks is not None:
-        return completed_tracks
     profile = con.session.get(
         'https://www.datacamp.com/profile/' + con.data['slug'])
     soup = BeautifulSoup(profile.text, 'html.parser')
@@ -209,17 +204,11 @@ def get_completed_tracks():
         link = 'https://www.datacamp.com' + tracks_link[i]['href']
         tracks.append(
             Track(i + 1, tracks_name[i].getText().replace('\n', ' ').strip(), link))
-    completed_tracks = tracks
     return tracks
 
 
-completed_courses = None
-
-
+@helper.memoize
 def get_completed_courses():
-    global completed_courses
-    if completed_courses is not None:
-        return completed_courses
     profile = con.session.get(
         'https://www.datacamp.com/profile/' + con.data['slug'])
     soup = BeautifulSoup(profile.text, 'html.parser')
@@ -230,5 +219,4 @@ def get_completed_courses():
         link = 'https://www.datacamp.com' + courses_link[i]['href']
         courses.append(
             Track(i + 1, courses_name[i].getText().strip(), link))
-    completed_courses = courses
     return courses
