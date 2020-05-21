@@ -35,6 +35,8 @@ def download_course(url, folder, videos_download, number=None):
         f'{bcolors.BKGREEN} {title}  {bcolors.BKENDC}\n')
     download_slides(course_id, os.path.join(
         folder, title))
+    download_exercises(course_id, os.path.join(
+        folder, title))
     if videos_download:
         download_videos(course_id, os.path.join(
             folder, title))
@@ -58,8 +60,34 @@ def download_slides(course_id, folder):
         helper.download_file(con, link,
                              os.path.join(folder, link.split('/')[-1]))
 
-    # sys.stdout.write(
-    #     f'{bcolors.OKGREEN}Slides has been successfully downloaded!{bcolors.ENDC}\n')
+
+def download_exercises(course_id, folder):
+    chapters = get_course_chapters(course_id)
+    sys.stdout.write(
+        f'{bcolors.BOLD}Downloading exercises...{bcolors.ENDC}\n')
+    for ind, chapter in enumerate(chapters['user_chapters'], 1):
+        exr_string = ''
+        counter = 1
+        exrs = get_chapter_exercises(course_id, chapter['chapter_id'])
+        for exr in exrs:
+            if not exr['completed']:
+                continue
+            if len(exr['subexercises']) > 0:
+                exr_string += f'# Exercise_{counter} \n'
+                for i, sub in enumerate(exr['subexercises'], 1):
+                    exr_string += '#' + str(i) + "\n"
+                    exr_string += sub['last_attempt'] + '\n'
+                exr_string += '\n\n'
+                exr_string += '-' * 50 + '\n'
+                counter += 1
+            elif exr['last_attempt'] and 'selected_option' not in exr['last_attempt']:
+                exr_string += f'# Exercise_{counter} \n'
+                exr_string += exr['last_attempt']
+                exr_string += '\n\n'
+                exr_string += '-' * 50 + '\n'
+                counter += 1
+        if exr_string:
+            helper.save_file(os.path.join(folder, f'ch{ind}_exercises.py'), exr_string)
 
 
 def download_videos(course_id, folder):
@@ -134,7 +162,7 @@ def download_videos(course_id, folder):
             helper.download_file(con, link, file_path)
 
 
-def get_chapter_content(course_id, chapter_id):
+def get_chapter_exercises(course_id, chapter_id):
     page = con.session.get('https://campus-api.datacamp.com/api/courses/{}/chapters/{}/progress'
                            .format(course_id, chapter_id))
     return page.json()
@@ -159,8 +187,7 @@ def get_course_id_and_title(course_url):
     except Exception as e:
         message = e.args
         return
-    id = soup.find(
-        "input", {"name": "course_id"})['value']
+    id = re.search(r'/course_(\d+)/', page.text).group(1)
     return id, title
 
 

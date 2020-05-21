@@ -49,6 +49,13 @@ def download_file(con, video_link, location):
     sys.stdout.write('\n')
 
 
+def save_file(filename, content):
+    mkdir(filename)
+    f = open(filename, "w", encoding='utf-8')
+    f.write(content)
+    f.close()
+
+
 def file_exist(file):
     return os.path.isfile(file)
 
