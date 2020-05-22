@@ -13,7 +13,7 @@ from utils import download_course, download_track, get_completed_tracks, get_com
 
 def login_parser():
     parser = ArgumentParser()
-    parser.add_argument("-t", "--token", required=True, type=str,
+    parser.add_argument("-t", "--token", required=False, type=str,
                         help="Specify your Datacamp authentication token.")
     parser.add_argument("-l", "--list", action='store_true',
                         help="List completed tracks")
@@ -48,7 +48,14 @@ def get_to_download():
 
 def main():
     args = login_parser().parse_args()
-    con.set_token(args.token)
+    if os.path.exists('./token.txt'):
+        with open('./token.txt', 'r') as f:
+            token = f.readline()
+        con.set_token(token)
+    else:
+        con.set_token(args.token)
+        with open('./token.txt', 'w') as f:
+            f.write(args.token)
 
     if not con.sub_active:
         return
