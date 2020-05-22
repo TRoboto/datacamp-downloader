@@ -22,6 +22,10 @@ def download_track(track, folder, videos_download, exercise_download):
     folder = os.path.join(folder, track_title)
 
     all_links = ['https://www.datacamp.com' + x['href'] for x in all_courses]
+    for i in all_links:
+        if i.endswith('/continue'):
+            all_links.remove(i)
+    all_links = list(dict.fromkeys(all_links))
     sys.stdout.write(
         f'{bcolors.BKBLUE}  {track_title}  {bcolors.BKENDC}\n')
     for i, link in enumerate(all_links):
