@@ -1,11 +1,12 @@
-from config import Config as con
 import sys
 import os
 import helper
-from helper import bcolors
-from bs4 import BeautifulSoup
 import json
 import re
+
+from config import Config as con
+from helper import bcolors
+from bs4 import BeautifulSoup
 from classes import Template
 
 
@@ -43,6 +44,61 @@ def download_course(url, folder, videos_download, exercise_download, number=None
     if videos_download:
         download_videos(course_id, os.path.join(
             folder, title))
+
+
+def get_chapter_exercises(course_id, chapter_id):
+    page = con.session.get('https://campus-api.datacamp.com/api/courses/{}/chapters/{}/progress'
+                           .format(course_id, chapter_id))
+    return page.json()
+
+
+def get_course_chapters(course_id):
+    page = con.session.get(
+        'https://campus-api.datacamp.com/api/courses/{}/progress'.format(course_id))
+    return page.json()
+
+
+def get_course_id_and_title(course_url):
+    page = con.session.get(helper.fix_link(course_url))
+    soup = BeautifulSoup(page.text, 'html.parser')
+    try:
+        title = soup.find('title').getText().split('|')[0].strip()
+    except Exception as e:
+        message = e.args
+        return
+    course_id = re.search(r'/course_(\d+)/', page.text).group(1)
+    return course_id, title
+
+
+@helper.memoize
+def get_completed_tracks():
+    profile = con.session.get(
+        'https://www.datacamp.com/profile/' + con.data['slug'])
+    soup = BeautifulSoup(profile.text, 'html.parser')
+    tracks_name = soup.findAll('div', {'class': 'track-block__main'})
+    tracks_link = soup.findAll('a', {'href': re.compile('^/tracks'),
+                                     'class': 'shim'})
+    tracks = []
+    for i in range(len(tracks_link)):
+        link = 'https://www.datacamp.com' + tracks_link[i]['href']
+        tracks.append(
+            Template(i + 1, tracks_name[i].getText().replace('\n', ' ').strip(), link))
+    return tracks
+
+
+@helper.memoize
+def get_completed_courses():
+    profile = con.session.get(
+        'https://www.datacamp.com/profile/' + con.data['slug'])
+    soup = BeautifulSoup(profile.text, 'html.parser')
+    courses_name = soup.findAll('h4', {'class': 'course-block__title'})
+    courses_link = soup.findAll('a', {'class': 'course-block__link ds-snowplow-link-course-block'})
+    courses = []
+    for i in range(len(courses_link)):
+        link = 'https://www.datacamp.com' + courses_link[i]['href']
+        courses.append(
+            Template(i + 1, courses_name[i].getText().strip(), link))
+    return courses
 
 
 def download_slides(course_id, folder):
@@ -163,58 +219,3 @@ def download_videos(course_id, folder):
             if helper.file_exist(file_path):
                 continue
             helper.download_file(con, link, file_path)
-
-
-def get_chapter_exercises(course_id, chapter_id):
-    page = con.session.get('https://campus-api.datacamp.com/api/courses/{}/chapters/{}/progress'
-                           .format(course_id, chapter_id))
-    return page.json()
-
-
-def get_course_chapters(course_id):
-    page = con.session.get(
-        'https://campus-api.datacamp.com/api/courses/{}/progress'.format(course_id))
-    return page.json()
-
-
-def get_course_id_and_title(course_url):
-    page = con.session.get(helper.fix_link(course_url))
-    soup = BeautifulSoup(page.text, 'html.parser')
-    try:
-        title = soup.find('title').getText().split('|')[0].strip()
-    except Exception as e:
-        message = e.args
-        return
-    course_id = re.search(r'/course_(\d+)/', page.text).group(1)
-    return course_id, title
-
-
-@helper.memoize
-def get_completed_tracks():
-    profile = con.session.get(
-        'https://www.datacamp.com/profile/' + con.data['slug'])
-    soup = BeautifulSoup(profile.text, 'html.parser')
-    tracks_name = soup.findAll('div', {'class': 'track-block__main'})
-    tracks_link = soup.findAll('a', {'href': re.compile('^/tracks'),
-                                     'class': 'shim'})
-    tracks = []
-    for i in range(len(tracks_link)):
-        link = 'https://www.datacamp.com' + tracks_link[i]['href']
-        tracks.append(
-            Template(i + 1, tracks_name[i].getText().replace('\n', ' ').strip(), link))
-    return tracks
-
-
-@helper.memoize
-def get_completed_courses():
-    profile = con.session.get(
-        'https://www.datacamp.com/profile/' + con.data['slug'])
-    soup = BeautifulSoup(profile.text, 'html.parser')
-    courses_name = soup.findAll('h4', {'class': 'course-block__title'})
-    courses_link = soup.findAll('a', {'class': 'course-block__link ds-snowplow-link-course-block'})
-    courses = []
-    for i in range(len(courses_link)):
-        link = 'https://www.datacamp.com' + courses_link[i]['href']
-        courses.append(
-            Template(i + 1, courses_name[i].getText().strip(), link))
-    return courses
