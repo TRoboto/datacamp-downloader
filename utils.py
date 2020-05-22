@@ -9,7 +9,7 @@ import re
 from classes import Template
 
 
-def download_track(track, folder, videos_download):
+def download_track(track, folder, videos_download, exercise_download):
     page = con.session.get(helper.fix_link(track.link))
     soup = BeautifulSoup(page.text, 'html.parser')
     all_courses = soup.findAll('a', {
@@ -23,20 +23,23 @@ def download_track(track, folder, videos_download):
     sys.stdout.write(
         f'{bcolors.BKBLUE}  {track_title}  {bcolors.BKENDC}\n')
     for i, link in enumerate(all_links):
-        download_course(link, folder, videos_download, i + 1)
+        download_course(link, folder, videos_download, exercise_download, i + 1)
 
 
-def download_course(url, folder, videos_download, number=None):
+def download_course(url, folder, videos_download, exercise_download, number=None):
     course_id, title = get_course_id_and_title(url)
     title = helper.format_filename(title)
     if number is not None:
         title = str(number) + ". " + title
     sys.stdout.write(
         f'{bcolors.BKGREEN} {title}  {bcolors.BKENDC}\n')
+
     download_slides(course_id, os.path.join(
         folder, title))
-    download_exercises(course_id, os.path.join(
-        folder, title))
+
+    if exercise_download:
+        download_exercises(course_id, os.path.join(
+            folder, title))
     if videos_download:
         download_videos(course_id, os.path.join(
             folder, title))

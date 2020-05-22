@@ -1,6 +1,7 @@
 import sys
 import threading
 import time
+import os
 
 import colorama
 
@@ -8,61 +9,85 @@ from config import Config as con
 from helper import bcolors
 from utils import download_course, download_track, get_completed_tracks, get_completed_courses
 
+from argparse import ArgumentParser
 
-def main(argv):
-    if argv[0] == 'settoken':
-        print_dash()
-        con.set_token(argv[1])
+
+def login_parser():
+    parser = ArgumentParser()
+    parser.add_argument("-s", "--token", required=True, type=str,
+                        help="Specify your Datacamp authentication token.")
+    parser.add_argument("-l", "--list", required=True, type=int,
+                        help="List completed (1) for tracks, (2) for courses")
+    parser.add_argument("-d", "--destination", required=False, default=os.getcwd(), type=str,
+                        help="Path to download the contents, default is the current directory")
+    parser.add_argument("-v", "--video", action='store_true',
+                        help="Include it if you want to download the videos")
+    parser.add_argument("-e", "--exercise", action='store_true',
+                        help="Include it if you want to download the exercises")
+    return parser
+
+
+def get_to_download():
+    inp = input('Enter the id(s) you want to download separated by a space or '
+                "you can enter 'a-b' to download courses from a to b: ")
+
+    if '-' in inp:
+        output = inp.split('-')
+        output = [*range(int(output[0]), int(output[1]) + 1)]
     else:
-        return
+        output = [int(x) for x in inp.split()]
+    return output
+
+
+def main():
+    args = login_parser().parse_args()
+    con.set_token(args.token)
 
     if not con.sub_active:
         return
-    print_dash()
-    print_desc()
+
     while True:
-        print_dash()
-        s = input('>> ')
-        if s == 'list':
-            thread = threading.Thread(target=print_tracks)
-            thread.start()
-            if print_waiting(thread):
-                if len(get_completed_tracks()) == 0:
-                    continue
-                (s, v) = wait_download()
-                if s is not None:
-                    path, nums = split_download_command(s)
-                    for i in nums:
-                        track = list(filter(lambda x: x.id == int(i),
-                                            get_completed_tracks()))[0]
-                        download_track(track, path, v)
-        elif s == 'listc':
-            thread = threading.Thread(target=print_courses)
-            thread.start()
-            if print_waiting(thread):
-                if len(get_completed_courses()) == 0:
-                    continue
-                (s, v) = wait_download()
-                if s is not None:
-                    path, nums = split_download_command(s)
-                    for i in nums:
-                        track = list(filter(lambda x: x.id == int(i),
-                                            get_completed_courses()))[0]
-                        download_course(track.link, path, v)
+        if args.list == 1:
+            handle_tracks(args)
+        elif args.list == 2:
+            handle_courses(args)
 
 
-def wait_download():
-    while True:
-        s = input('>>> ')
-        if s.split()[0] == 'download':
-            return s, False  # False for don't download videos
-        elif s.split()[0] == 'downloadv':
-            return s, True  # Download videos
-        elif s == 'back':
-            return None, False
+def handle_courses(args):
+    thread = start_thread(print_courses)
+    if wait(thread):
+        if len(get_completed_courses()) == 0:
+            exit()
+
+        required_courses = get_to_download()
+
+        for course_id in required_courses:
+            course = list(filter(lambda x: x.id == course_id,
+                                 get_completed_courses()))[0]
+
+            download_course(course.link, args.destination, args.video, args.exercise)
 
 
-def print_waiting(thread):
+def handle_tracks(args):
+    thread = start_thread(print_tracks)
+    if wait(thread):
+        if len(get_completed_tracks()) == 0:
+            exit()
+        required_tracks = get_to_download()
+
+        for track_id in required_tracks:
+            track = list(filter(lambda x: x.id == track_id,
+                                get_completed_tracks()))[0]
+            download_track(track, args.destination, args.video, args.exercise)
+
+
+def start_thread(func):
+    thread = threading.Thread(target=func)
+    thread.start()
+    return thread
+
+
+def wait(thread):
     i = 1
     while thread.isAlive():
         print('Waiting %s%s' % ('.' * i, ' ' * (3 - i)), end='\r')
@@ -72,32 +97,11 @@ def print_waiting(thread):
     return True
 
 
-def split_download_command(text):
-    if "'" in text:
-        path = text.split("'")
-        if '-' in path[2]:
-            nums = list(range(
-                int(path[2].split('-')[0]),
-                int(path[2].split('-')[1]) + 1))
-        else:
-            nums = path[2].split()
-        return path[1], nums
-    else:
-        path = text.split()
-        if '-' in path[2]:
-            nums = list(range(
-                int(path[2].split('-')[0]),
-                int(path[2].split('-')[1]) + 1))
-        else:
-            nums = path[2:]
-        return path[1], nums
-
-
 def print_courses():
     courses = get_completed_courses()
     if len(courses) == 0:
         sys.stdout.write(
-            f'{bcolors.FAIL} No courses found!  {bcolors.BKENDC}\n')
+            f'{bcolors.FAIL} No completed courses found!  {bcolors.BKENDC}\n')
     for course in courses:
         sys.stdout.write(
             f'{bcolors.BKGREEN} {course.id}. {course.name}  {bcolors.BKENDC}\n')
@@ -107,35 +111,13 @@ def print_tracks():
     tracks = get_completed_tracks()
     if len(tracks) == 0:
         sys.stdout.write(
-            f'{bcolors.FAIL} No tracks found!  {bcolors.BKENDC}\n')
+            f'{bcolors.FAIL} No completed tracks found!  {bcolors.BKENDC}\n')
 
     for track in tracks:
         sys.stdout.write(
             f'{bcolors.BKBLUE} {track.id}. {track.name}  {bcolors.BKENDC}\n')
 
 
-def print_desc():
-    desc = 'Use the following commands in order.\n' +\
-           f'1. {bcolors.BKBLUE}list{bcolors.BKENDC}     : to print your completed tracks.\n' +\
-           f'   or {bcolors.BKBLUE}listc{bcolors.BKENDC} : to print your completed courses.\n' +\
-           f'2. {bcolors.BKBLUE}download{bcolors.BKENDC} followed by the destination and the id(s) of the ' +\
-           f'track(s)/course(s).\n\tThis command downloads {bcolors.OKBLUE}slides{bcolors.ENDC} only.\n' +\
-           f'   or {bcolors.BKBLUE}downloadv{bcolors.BKENDC} followed by the destination and the id(s) of the ' +\
-           f'track(s)/course(s).\n\tThis command downloads both {bcolors.OKBLUE}slides and videos{bcolors.ENDC}.\n' +\
-           f'{bcolors.OKGREEN}Note: you can type 1-13 in the download command to download courses from 1 to 13.{bcolors.ENDC}\n' +\
-           '=' * 100 + '\n' + \
-           f'{bcolors.BKGREEN} Example {bcolors.BKENDC}\n' + \
-           '>> listc\n 1. Introduction to Databases in Python' + \
-           '\n 2. Building Chatbots in Python \n' + \
-           ">>> downloadv 'C:/' 2"
-    print(desc)
-
-
-def print_dash():
-    print('=' * 100, end='\n')
-
-
 colorama.init()
 if __name__ == "__main__":
-    # print(sys.argv)
-    main(sys.argv[1:])
+    main()
