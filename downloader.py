@@ -45,6 +45,8 @@ def main():
     if not con.sub_active:
         return
 
+    print_dash()
+
     while True:
         if args.list == 1:
             handle_tracks(args)
@@ -65,6 +67,10 @@ def handle_courses(args):
                                  get_completed_courses()))[0]
 
             download_course(course.link, args.destination, args.video, args.exercise)
+
+
+def print_dash():
+    print('=' * 100, end='\n')
 
 
 def handle_tracks(args):
