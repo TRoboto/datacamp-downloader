@@ -1,4 +1,4 @@
-**OLD INSTRUCTION, WILL BE UPDATED SOON!**
+**OLD INSTRUCTIONS, WILL BE UPDATED SOON!**
 
 # Datacamp Downloader
 [![MIT License](https://img.shields.io/apm/l/atomic-design-ui.svg?)](https://github.com/TRoboto/datacamp-downloader/blob/master/LICENSE)  
