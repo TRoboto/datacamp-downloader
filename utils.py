@@ -1,13 +1,14 @@
-import sys
-import os
-import helper
 import json
+import os
 import re
+import sys
 
+from bs4 import BeautifulSoup
+
+import helper
+from classes import Template
 from config import Config as con
 from helper import bcolors
-from bs4 import BeautifulSoup
-from classes import Template
 
 
 def download_track(track, folder, videos_download, exercise_download):

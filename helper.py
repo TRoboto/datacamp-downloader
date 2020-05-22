@@ -1,8 +1,7 @@
 import os
+import string
 import sys
 import time
-import string
-from typing import Dict, Any
 
 
 class bcolors:

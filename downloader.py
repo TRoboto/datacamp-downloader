@@ -1,15 +1,14 @@
+import os
 import sys
 import threading
 import time
-import os
+from argparse import ArgumentParser
 
 import colorama
 
 from config import Config as con
 from helper import bcolors
 from utils import download_course, download_track, get_completed_tracks, get_completed_courses
-
-from argparse import ArgumentParser
 
 
 def login_parser():
