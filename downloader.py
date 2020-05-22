@@ -13,16 +13,24 @@ from utils import download_course, download_track, get_completed_tracks, get_com
 
 def login_parser():
     parser = ArgumentParser()
-    parser.add_argument("-s", "--token", required=True, type=str,
+    parser.add_argument("-t", "--token", required=True, type=str,
                         help="Specify your Datacamp authentication token.")
-    parser.add_argument("-l", "--list", required=True, type=int,
-                        help="List completed (1) for tracks, (2) for courses")
-    parser.add_argument("-d", "--destination", required=False, default=os.getcwd(), type=str,
+    parser.add_argument("-l", "--list", action='store_true',
+                        help="List completed tracks")
+    parser.add_argument("-lc", "--listc", action='store_true',
+                        help="List completed courses")
+    parser.add_argument("-p", "--path", required=False, default=os.getcwd(), type=str,
                         help="Path to download the contents, default is the current directory")
     parser.add_argument("-v", "--video", action='store_true',
                         help="Include it if you want to download the videos")
+    parser.add_argument("-s", "--slide", action='store_true',
+                        help="Include it if you want to download the slides")
+    parser.add_argument("-d", "--dataset", action='store_true',
+                        help="Include it if you want to download the datasets")
     parser.add_argument("-e", "--exercise", action='store_true',
                         help="Include it if you want to download the exercises")
+    parser.add_argument("-a", "--all", action='store_true',
+                        help="Include it if you want to download all the content")
     return parser
 
 
@@ -48,9 +56,9 @@ def main():
     print_dash()
 
     while True:
-        if args.list == 1:
+        if args.list:
             handle_tracks(args)
-        elif args.list == 2:
+        elif args.listc:
             handle_courses(args)
 
 
@@ -66,7 +74,10 @@ def handle_courses(args):
             course = list(filter(lambda x: x.id == course_id,
                                  get_completed_courses()))[0]
 
-            download_course(course.link, args.destination, args.video, args.exercise)
+            if(args.all):
+                download_course(course.link, args.path, args.all, args.all, args.all, args.all)
+            else:
+                download_course(course.link, args.path, args.video, args.slide, args.dataset, args.exercise)
 
 
 def print_dash():
@@ -83,7 +94,10 @@ def handle_tracks(args):
         for track_id in required_tracks:
             track = list(filter(lambda x: x.id == track_id,
                                 get_completed_tracks()))[0]
-            download_track(track, args.destination, args.video, args.exercise)
+            if args.all:
+                download_track(track.link, args.path, args.all, args.all, args.all, args.all)
+            else:
+                download_track(track.link, args.path, args.video, args.slide, args.dataset, args.exercise)
 
 
 def start_thread(func):
