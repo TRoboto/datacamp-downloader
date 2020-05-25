@@ -52,10 +52,10 @@ pip install -r requirements.txt
 * `-p` or `--path` Your distination to download the files ; default destination is the current directory
 * `-v` or `--video` to download the videos
 * `-e` or `--exercises`to download the exercises
-* `-d` or `--video` to download the datasets
-* `-a` or `--exercises`to download all the track/course and its data
+* `-d` or `--datasets` to download the datasets
+* `-a` or `--all`to download all the track/course and its data
 
-**Note**: The tool only downloads slides if `-v` and `-e` are not specified.
+**Note**: The tool only downloads slides if `-v` and `-e` and `-a` are not specified.
 
 ### How to use
 1. First you should configure your token to be able to download your contents, run with your arguments:
