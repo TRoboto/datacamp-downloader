@@ -34,16 +34,28 @@ def login_parser():
     return parser
 
 
-def get_to_download():
-    inp = input('Enter the id(s) you want to download separated by a space or '
-                "you can enter 'a-b' to download courses from a to b: ")
+def is_link(l):
+    return '/' in l
 
-    if '-' in inp:
-        output = inp.split('-')
-        output = [*range(int(output[0]), int(output[1]) + 1)]
-    else:
-        output = [int(x) for x in inp.split()]
-    return output
+
+def get_to_download():
+    #     inp = input('Enter the id(s) you want to download separated by a space or '
+    #                 "you can enter 'a-b' to download courses from a to b: ")
+    inp = input('Enter the id(s)/link(s) you want to download separated by a space or '
+                "you can enter 'a-b' to download courses from a to b(if you have completed them): ")
+
+    output = inp.split()
+    output_links = [x for x in output if is_link(x)]
+    output_numbers = [x for x in output if not is_link(x)]
+    result = []
+    for i in output_numbers:
+        if '-' in i:
+            result = i.split('-')
+            result = [*range(int(result[0]), int(result[1]) + 1)]
+        else:
+            result.append(int(i))
+    print(output_links, result)
+    return (output_links, result)
 
 
 def main():
@@ -74,17 +86,23 @@ def handle_courses(args):
     if wait(thread):
         if len(get_completed_courses()) == 0:
             exit()
-
-        required_courses = get_to_download()
-
-        for course_id in required_courses:
-            course = list(filter(lambda x: x.id == course_id,
-                                 get_completed_courses()))[0]
-
-            if(args.all):
-                download_course(course.link, args.path, args.all, args.all, args.all, args.all)
-            else:
-                download_course(course.link, args.path, args.video, args.slide, args.dataset, args.exercise)
+        links = get_to_download()
+        required_courses_by_id = links[1]
+        required_courses_by_link = links[0]
+        if(len(required_courses_by_id) > 0):
+            for course_id in required_courses_by_id:
+                course = list(filter(lambda x: x.id == course_id,
+                                     get_completed_courses()))[0]
+                if(args.all):
+                    download_course(course.link, args.path, args.all, args.all, args.all, args.all)
+                else:
+                    download_course(course.link, args.path, args.video, args.slide, args.dataset, args.exercise)
+        if(len(required_courses_by_link) > 0):
+            for course_link in required_courses_by_link:
+                if(args.all):
+                    download_course(course_link, args.path, args.all, args.all, args.all, args.all)
+                else:
+                    download_course(course_link, args.path, args.video, args.slide, args.dataset, args.exercise)
 
 
 def print_dash():
@@ -96,15 +114,22 @@ def handle_tracks(args):
     if wait(thread):
         if len(get_completed_tracks()) == 0:
             exit()
-        required_tracks = get_to_download()
-
-        for track_id in required_tracks:
-            track = list(filter(lambda x: x.id == track_id,
-                                get_completed_tracks()))[0]
-            if args.all:
-                download_track(track.link, args.path, args.all, args.all, args.all, args.all)
-            else:
-                download_track(track.link, args.path, args.video, args.slide, args.dataset, args.exercise)
+        required_tracks_by_id = get_to_download()[1]
+        required_tracks_by_link = get_to_download()[0]
+        if(len(required_tracks_by_id) > 0):
+            for track_id in required_tracks_by_id:
+                track = list(filter(lambda x: x.id == track_id,
+                                    get_completed_tracks()))[0]
+                if args.all:
+                    download_track(track.link, args.path, args.all, args.all, args.all, args.all)
+                else:
+                    download_track(track.link, args.path, args.video, args.slide, args.dataset, args.exercise)
+        if(len(required_tracks_by_link) > 0):
+            for course_link in required_tracks_by_link:
+                if(args.all):
+                    download_track(course_link, args.path, args.all, args.all, args.all, args.all)
+                else:
+                    download_track(course_link, args.path, args.video, args.slide, args.dataset, args.exercise)
 
 
 def start_thread(func):
