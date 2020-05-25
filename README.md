@@ -1,9 +1,7 @@
-**OLD INSTRUCTIONS, WILL BE UPDATED SOON!**
-
 # Datacamp Downloader
-[![MIT License](https://img.shields.io/apm/l/atomic-design-ui.svg?)](https://github.com/TRoboto/datacamp-downloader/blob/master/LICENSE)  
+[![MIT License](https://img.shields.io/apm/l/atomic-design-ui.svg?)](https://github.com/TRoboto/datacamp-downloader/blob/master/LICENSE)
 
-**Docker version of this repo can be found [here](https://github.com/amughrabi/datacamp-downloader)**
+**Docker of an old version of this repo can be found [here](https://github.com/amughrabi/datacamp-downloader)**
 
 ## Table of Contents
 - [Datacamp Downloader](#datacamp-downloader)
@@ -11,21 +9,22 @@
   - [Description](#description)
   - [Instructions](#instructions)
     - [Installation](#installation)
-    - [Commands](#commands)
+    - [Required Arguments](#required-arguments)
+    - [Optional Arguments](#optional-arguments)
     - [How to use](#how-to-use)
   - [Disclaimer](#disclaimer)
 
 ## Description
 Datacamp Downloader is a command-line interface tool developed in Python
-in order to help you download your completed contents on [Datacamp](https://datacamp.com) 
-and keep them locally on your computer.  
+in order to help you download your completed contents on [Datacamp](https://datacamp.com)
+and keep them locally on your computer.
 
-Datacamp Downloader helps you download all videos, slides and some additional
+Datacamp Downloader helps you download all videos, slides, exercises and some additional
 contents if available (e.g. datasets) and organize them in folders.
 
 The design and development of this tool was inspired by [udacimak](https://github.com/udacimak/udacimak)
 
-**Support!**  
+**Support!**
 If you find this CLI helpful, please support the developers by starring this repository.
 
 ## Instructions
@@ -43,94 +42,77 @@ cd PATH
 ```
 pip install -r requirements.txt
 ```
-### Commands
-`settoken`: **Set Datacamp authentication token**.  
-`list` : List your completed **tracks**.  
-`listc` : List your completed **courses**.  
-`download` : Download **slides** and any available additional contents.  
-`downloadv` : Download **videos, slides** and any available additional contents.
+### Required Arguments
+
+* `-t` or `--token` `YOUR_DATACAMP_AUTH_TOKEN`
+* `-l` or `--list` `T` or `C` such that T to list completed tracks and C for compelted courses
+
+### Optional Arguments
+* `-h` or `--help` show help message
+* `-p` or `--path` Your distination to download the files ; default destination is the current directory
+* `-v` or `--video` to download the videos
+* `-e` or `--exercises`to download the exercises
+* `-d` or `--datasets` to download the datasets
+* `-a` or `--all`to download all the track/course and its data
+
+**Note**: The tool only downloads slides if `-v` and `-e` and `-a` are not specified.
 
 ### How to use
-1. First you should configure your token to be able to download your contents, run:
+1. First you should configure your token to be able to download your contents, run with your arguments:
 ```
-python downloader.py settoken YOUR_DATACAMP_AUTH_TOKEN
+python downloader.py -t YOUR_DATACAMP_AUTH_TOKEN -l LIST [-d DESTINATION] [-v] [-e] [-d] [-a]
 ```
-Datacamp authentication token can be found in Datacamp website browser _cookies_. 
+Examples :
+
+I. To list your completed track(s) and download slides, videos and exercises in the current directory, run:
+```
+python downloader.py -s YOUR_DATACAMP_AUTH_TOKEN -l T -v -e
+```
+II. To list your completed track(s) and download slides, videos, exercises and datasets in the current directory, run:
+```
+python downloader.py -s YOUR_DATACAMP_AUTH_TOKEN -l T -a
+```
+III. To list your completed course(s) and download slides and datasets in `C:\` directory, run:
+```
+python downloader.py -s YOUR_DATACAMP_AUTH_TOKEN -l C -p C:\ -d
+```
+
+Datacamp authentication token can be found in Datacamp website browser _cookies_.
 To get your Datacamp authentication, follow these steps:
 
-**Firefox**  
-  1. Visit [datacamp.com](https://datacamp.com) and log in.  
-  2. Open the **Developer Tools** (press `Cmd + Opt + J` on MacOS or `F12` on Windows).  
-  3. Go to **Storage tab**, then **Cookies** > `https://www.datacamp.com`  
+**Firefox**
+  1. Visit [datacamp.com](https://datacamp.com) and log in.
+  2. Open the **Developer Tools** (press `Cmd + Opt + J` on MacOS or `F12` on Windows).
+  3. Go to **Storage tab**, then **Cookies** > `https://www.datacamp.com`
   4. Find `_dct` key, its **Value** is the Datacamp authentication token.
 
-**Chrome**  
-  1. Visit [datacamp.com](https://datacamp.com) and log in.  
-  2. Open the **Developer Tools** (press `Cmd + Opt + J` on MacOS or `F12` on Windows).  
-  3. Go to **Application tab**, then **Storage** > **Cookies** > `https://www.datacamp.com`  
+**Chrome**
+  1. Visit [datacamp.com](https://datacamp.com) and log in.
+  2. Open the **Developer Tools** (press `Cmd + Opt + J` on MacOS or `F12` on Windows).
+  3. Go to **Application tab**, then **Storage** > **Cookies** > `https://www.datacamp.com`
   4. Find `_dct` key, its **Value** is the Datacamp authentication token.
 
-**Security Note**  
+**Security Note**
 Datacamp authentication token is a secret key and is unique to you. **You should not share it publicly**.
 
 Then if you have an active subscription, you should see the following:
 ```
-====================================================================================================
 Hi, YOUR_NAME
 Active subscription found
 ====================================================================================================
-Use the following commands in order.
-1. list : to print your completed tracks.
-or listc : to print your completed courses.
-2. download followed by the destination and the id(s) of the track(s)/course(s).
-This command downloads slides only.
-or downloadv followed by the destination and the id(s) of the track(s)/course(s).
-This command downloads both slides and videos.
-Note: you can type 1-13 in the download command to download courses from 1 to 13.
-====================================================================================================
-Example to print your completed tracks.
->> list
 1. Introduction to Databases in Python
 2. Building Chatbots in Python
->>> downloadv 'C:/' 2
-====================================================================================================
+3. Introduction to Python
+Enter the id(s) you want to download separated by a space or you can enter 'a-b' to download courses from a to b:
 ```
-2. To list your completed track(s), run:
-```
->> list
-```
-or to list your completed course(s), run:
-```
->> listc
-```
-You should each course/track has a unique number as follows:
-```
-1. FIRST_COURSE
-2. SECOND_COURSE
-3. THIRD_COURSE
-```
-3. To download the **slides** and any available additional contents, run:
-```
->>> download 'DOWNLOAD_PATH' COURSE_ID(s)
-```
-or to download the **slides, videos** and any available additional contents, run:
-```
->>> downloadv 'DOWNLOAD_PATH' COURSE_ID(s)
-```
+2. Enter the id(s) you want to download, where the id is the number of the course or track shown on the console.
 
-**Example**  
-To download the second course directly on `C` drive, run:
-```
->>> download 'C:/' 1
-```
-To download the first and the third course directly on `C` drive, run:
-```
->>> download 'C:/' 1 3
-```
-To download all three courses directly on `C` drive, run:
-```
->>> download 'C:/' 1-3
-```
+Examples:
+
+I. To download the first course enter `1`
+II. To download the first and third courses enter `1 3`
+III. To download the first three courses enter `1-3`
+
 where `1-3` is the range of the courses you want to download.
 
 ## Disclaimer
