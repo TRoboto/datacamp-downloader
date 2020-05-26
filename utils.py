@@ -11,7 +11,7 @@ from config import Config as con
 from helper import bcolors
 
 
-def download_track(track, folder, videos_download, exercise_download):
+def download_track(track, folder, videos_download, exercise_download, datasets_download):
     page = con.session.get(helper.fix_link(track.link))
     soup = BeautifulSoup(page.text, 'html.parser')
     all_courses = soup.findAll('a', {
@@ -29,22 +29,26 @@ def download_track(track, folder, videos_download, exercise_download):
     sys.stdout.write(
         f'{bcolors.BKBLUE}  {track_title}  {bcolors.BKENDC}\n')
     for i, link in enumerate(all_links):
-        download_course(link, folder, videos_download, exercise_download, i + 1)
+        download_course(link, folder, videos_download, exercise_download, datasets_download, i + 1)
 
 
-def download_course(url, folder, videos_download, exercise_download, number=None):
+def download_course(url, folder, videos_download, exercise_download, datasets_download, number=None):
     course_id, title = get_course_id_and_title(url)
     title = helper.format_filename(title)
+
     if number is not None:
         title = str(number) + ". " + title
+
     sys.stdout.write(
         f'{bcolors.BKGREEN} {title}  {bcolors.BKENDC}\n')
 
-    download_slides(course_id, os.path.join(
-        folder, title))
+    download_slides(course_id, os.path.join(folder, title))
 
     if exercise_download:
         download_exercises(course_id, os.path.join(
+            folder, title))
+    if datasets_download:
+        download_datasets(url, os.path.join(
             folder, title))
     if videos_download:
         download_videos(course_id, os.path.join(
@@ -224,3 +228,29 @@ def download_videos(course_id, folder):
             if helper.file_exist(file_path):
                 continue
             helper.download_file(con, link, file_path)
+
+
+def download_datasets(link, folder):
+    page = con.session.get(helper.fix_link(link))
+    soup = BeautifulSoup(page.text, 'html.parser')
+
+    dataset = soup.findAll('a', {
+        'href': re.compile('^https'),
+        'class': re.compile('^link-borderless')
+    })
+    if len(dataset) == 0:
+        sys.stdout.write(
+            f'{bcolors.FAIL}No dataset found!{bcolors.ENDC}\n')
+        return
+
+    titles = [x.text.strip() for x in dataset]
+    all_links = [x['href'] for x in dataset]
+    sys.stdout.write(
+        f'{bcolors.BOLD}Downloading dataset...{bcolors.ENDC}\n')
+    if not os.path.exists(folder):
+        os.mkdir(folder)
+    if(not os.path.exists(os.path.join(folder, 'Dataset'))):
+        os.mkdir(os.path.join(folder, 'Dataset'))
+    for link, title in zip(all_links, titles):
+        dir = os.path.join(folder, 'Dataset', title) + '.' + link.split('.')[-1]
+        helper.download_file(con, link, dir)
