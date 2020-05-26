@@ -43,7 +43,7 @@ pip install -r requirements.txt
 ### Required Arguments
 
 * `-t` or `--token` `YOUR_DATACAMP_AUTH_TOKEN`
-* `-l` or `--list` `T` or `C` such that `T` to list completed tracks and `C` for compelted courses
+* `-l` or `--list` `T` or `C` such that `T` to list completed tracks and `C` to list completed courses
 
 ### Optional Arguments
 * `-h` or `--help` show help message
