@@ -1,8 +1,6 @@
 # Datacamp Downloader
 [![MIT License](https://img.shields.io/apm/l/atomic-design-ui.svg?)](https://github.com/TRoboto/datacamp-downloader/blob/master/LICENSE)
 
-**Docker of an old version of this repo can be found [here](https://github.com/amughrabi/datacamp-downloader)**
-
 ## Table of Contents
 - [Datacamp Downloader](#datacamp-downloader)
   - [Table of Contents](#table-of-contents)
@@ -24,7 +22,7 @@ contents if available (e.g. datasets) and organize them in folders.
 
 The design and development of this tool was inspired by [udacimak](https://github.com/udacimak/udacimak)
 
-**Support!**
+**Support!**  
 If you find this CLI helpful, please support the developers by starring this repository.
 
 ## Instructions
@@ -45,17 +43,17 @@ pip install -r requirements.txt
 ### Required Arguments
 
 * `-t` or `--token` `YOUR_DATACAMP_AUTH_TOKEN`
-* `-l` or `--list` `T` or `C` such that T to list completed tracks and C for compelted courses
+* `-l` or `--list` `T` or `C` such that `T` to list completed tracks and `C` for compelted courses
 
 ### Optional Arguments
 * `-h` or `--help` show help message
-* `-p` or `--path` Your distination to download the files ; default destination is the current directory
+* `-p` or `--path` Path to download the files; default path is the current directory
 * `-v` or `--video` to download the videos
 * `-e` or `--exercises`to download the exercises
 * `-d` or `--datasets` to download the datasets
 * `-a` or `--all`to download all the track/course and its data
 
-**Note**: The tool only downloads slides if `-v` and `-e` and `-a` are not specified.
+**Note**: The tool downloads slides by default and any additional content if `-v`, `-e` or `-a` are specified.
 
 ### How to use
 1. First you should configure your token to be able to download your contents, run with your arguments:
@@ -92,7 +90,7 @@ To get your Datacamp authentication, follow these steps:
   3. Go to **Application tab**, then **Storage** > **Cookies** > `https://www.datacamp.com`
   4. Find `_dct` key, its **Value** is the Datacamp authentication token.
 
-**Security Note**
+**Security Note**  
 Datacamp authentication token is a secret key and is unique to you. **You should not share it publicly**.
 
 Then if you have an active subscription, you should see the following:
@@ -109,9 +107,9 @@ Enter the id(s) you want to download separated by a space or you can enter 'a-b'
 
 Examples:
 
-I. To download the first course enter `1`
-II. To download the first and third courses enter `1 3`
-III. To download the first three courses enter `1-3`
+I. To download the first course enter `1`  
+II. To download the first and third courses enter `1 3`  
+III. To download the first three courses enter `1-3`  
 
 where `1-3` is the range of the courses you want to download.
 
