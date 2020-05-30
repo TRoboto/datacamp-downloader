@@ -11,8 +11,8 @@ from config import Config as con
 from helper import bcolors
 
 
-def download_track(track, folder, videos_download, exercise_download, datasets_download):
-    page = con.session.get(helper.fix_link(track.link))
+def download_track(url, folder, videos_download, exercise_download, datasets_download):
+    page = con.session.get(helper.fix_link(url))
     soup = BeautifulSoup(page.text, 'html.parser')
     all_courses = soup.findAll('a', {
         'href': re.compile('^/courses/'),
