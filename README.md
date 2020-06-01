@@ -58,7 +58,7 @@ pip install -r requirements.txt
 ### How to use
 1. First you should configure your token to be able to download your contents, run with your arguments:
 ```
-python downloader.py -t YOUR_DATACAMP_AUTH_TOKEN -l LIST [-d DESTINATION] [-v] [-e] [-d] [-a]
+python downloader.py -t YOUR_DATACAMP_AUTH_TOKEN -l LIST [-p DESTINATION] [-v] [-e] [-d] [-a]
 ```
 Examples :
 
