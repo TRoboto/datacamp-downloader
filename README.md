@@ -64,15 +64,15 @@ Examples :
 
 I. To list your completed track(s) and download slides, videos and exercises in the current directory, run:
 ```
-python downloader.py -s YOUR_DATACAMP_AUTH_TOKEN -l T -v -e
+python downloader.py -t YOUR_DATACAMP_AUTH_TOKEN -l T -v -e
 ```
 II. To list your completed track(s) and download slides, videos, exercises and datasets in the current directory, run:
 ```
-python downloader.py -s YOUR_DATACAMP_AUTH_TOKEN -l T -a
+python downloader.py -t YOUR_DATACAMP_AUTH_TOKEN -l T -a
 ```
 III. To list your completed course(s) and download slides and datasets in `C:\` directory, run:
 ```
-python downloader.py -s YOUR_DATACAMP_AUTH_TOKEN -l C -p C:\ -d
+python downloader.py -t YOUR_DATACAMP_AUTH_TOKEN -l C -p C:\ -d
 ```
 
 Datacamp authentication token can be found in Datacamp website browser _cookies_.
