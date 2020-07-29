@@ -34,11 +34,15 @@ git clone https://github.com/TRoboto/datacamp-downloader
 ```
 2. Open the terminal and change the current working directory to the location where you downloaded/cloned the repo, run:
 ```
-cd PATH
+cd datacamp-downloader
 ```
 3. Download the required dependancies, run:
 ```
 pip install -r requirements.txt
+```
+4. Make sure Python 3 is installed using:
+```
+python --version
 ```
 ### Required Arguments
 
