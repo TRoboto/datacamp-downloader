@@ -60,23 +60,23 @@ python --version
 **Note**: The tool downloads slides by default and any additional content if `-v`, `-e` or `-a` are specified.
 
 ### How to use
-1. First you should configure your token to be able to download your contents, run with your arguments:
+1. First you should configure your token to be able to download your contents, run with either in `T` or `C` list mode:
 ```
-python downloader.py -t YOUR_DATACAMP_AUTH_TOKEN -l LIST [-p DESTINATION] [-v] [-e] [-d] [-a]
+python downloader.py --token YOUR_DATACAMP_AUTH_TOKEN --list (T | C) [--path DESTINATION] [--video] [--exercises] [--datasets] [--all]
 ```
 Examples :
 
 I. To list your completed track(s) and download slides, videos and exercises in the current directory, run:
 ```
-python downloader.py -t YOUR_DATACAMP_AUTH_TOKEN -l T -v -e
+python downloader.py --token YOUR_DATACAMP_AUTH_TOKEN --list T --video --exercises
 ```
 II. To list your completed track(s) and download slides, videos, exercises and datasets in the current directory, run:
 ```
-python downloader.py -t YOUR_DATACAMP_AUTH_TOKEN -l T -a
+python downloader.py --token YOUR_DATACAMP_AUTH_TOKEN --list T --all
 ```
 III. To list your completed course(s) and download slides and datasets in `C:\` directory, run:
 ```
-python downloader.py -t YOUR_DATACAMP_AUTH_TOKEN -l C -p C:\ -d
+python downloader.py --token YOUR_DATACAMP_AUTH_TOKEN --list C --path C:\ --datasets
 ```
 
 Datacamp authentication token can be found in Datacamp website browser _cookies_.
