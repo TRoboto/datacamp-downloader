@@ -56,6 +56,11 @@ def main():
             handle_tracks(args)
         elif args.list == 'C':
             handle_courses(args)
+        else:
+            sys.stdout.write(
+                f"{bcolors.FAIL} No valid list type provided! Only 'T' for tracks and 'C' for courses allowed! (args.list={args.list})  {bcolors.BKENDC}\n")
+            break
+            
 
 
 def handle_courses(args):
