@@ -46,7 +46,7 @@ def main():
     args = login_parser().parse_args()
     con.set_token(args.token)
 
-    if not con.sub_active:
+    if not con.login:
         return
 
     print_dash()
@@ -60,7 +60,6 @@ def main():
             sys.stdout.write(
                 f"{bcolors.FAIL} No valid list type provided! Only 'T' for tracks and 'C' for courses allowed! (args.list={args.list})  {bcolors.BKENDC}\n")
             break
-            
 
 
 def handle_courses(args):
@@ -76,9 +75,11 @@ def handle_courses(args):
                                  get_completed_courses()))[0]
 
             if(args.all):
-                download_course(course.link, args.path, args.all, args.all, args.all)
+                download_course(course.link, args.path,
+                                args.all, args.all, args.all)
             else:
-                download_course(course.link, args.path, args.video, args.exercise, args.dataset)
+                download_course(course.link, args.path,
+                                args.video, args.exercise, args.dataset)
 
 
 def print_dash():
@@ -96,9 +97,11 @@ def handle_tracks(args):
             track = list(filter(lambda x: x.id == track_id,
                                 get_completed_tracks()))[0]
             if args.all:
-                download_track(track.link, args.path, args.all, args.all, args.all)
+                download_track(track.link, args.path,
+                               args.all, args.all, args.all)
             else:
-                download_track(track.link, args.path, args.video, args.exercise, args.dataset)
+                download_track(track.link, args.path, args.video,
+                               args.exercise, args.dataset)
 
 
 def start_thread(func):
@@ -121,7 +124,7 @@ def print_courses():
     courses = get_completed_courses()
     if len(courses) == 0:
         sys.stdout.write(
-            f'{bcolors.FAIL} No completed courses found!  {bcolors.BKENDC}\n')
+            f'{bcolors.FAIL}No completed courses found!  {bcolors.BKENDC}\n')
     for course in courses:
         sys.stdout.write(
             f'{bcolors.BKGREEN} {course.id}. {course.name}  {bcolors.BKENDC}\n')
@@ -131,7 +134,7 @@ def print_tracks():
     tracks = get_completed_tracks()
     if len(tracks) == 0:
         sys.stdout.write(
-            f'{bcolors.FAIL} No completed tracks found!  {bcolors.BKENDC}\n')
+            f'{bcolors.FAIL}No completed tracks found!  {bcolors.BKENDC}\n')
 
     for track in tracks:
         sys.stdout.write(

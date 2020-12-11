@@ -29,7 +29,8 @@ def download_track(url, folder, videos_download, exercise_download, datasets_dow
     sys.stdout.write(
         f'{bcolors.BKBLUE}  {track_title}  {bcolors.BKENDC}\n')
     for i, link in enumerate(all_links):
-        download_course(link, folder, videos_download, exercise_download, datasets_download, i + 1)
+        download_course(link, folder, videos_download,
+                        exercise_download, datasets_download, i + 1)
 
 
 def download_course(url, folder, videos_download, exercise_download, datasets_download, number=None):
@@ -101,7 +102,9 @@ def get_completed_courses():
         'https://www.datacamp.com/profile/' + con.data['slug'])
     soup = BeautifulSoup(profile.text, 'html.parser')
     courses_name = soup.findAll('h4', {'class': 'course-block__title'})
-    courses_link = soup.findAll('a', {'class': 'course-block__link ds-snowplow-link-course-block'})
+    courses_link = soup.findAll(
+        'a', {'class': re.compile('^course-block__link')})
+    print(courses_name)
     courses = []
     for i in range(len(courses_link)):
         link = 'https://www.datacamp.com' + courses_link[i]['href']
@@ -155,7 +158,8 @@ def download_exercises(course_id, folder):
                 exr_string += '-' * 50 + '\n'
                 counter += 1
         if exr_string:
-            helper.save_file(os.path.join(folder, f'ch{ind}_exercises.py'), exr_string)
+            helper.save_file(os.path.join(
+                folder, f'ch{ind}_exercises.py'), exr_string)
 
 
 def download_videos(course_id, folder):
@@ -252,5 +256,6 @@ def download_datasets(link, folder):
     if(not os.path.exists(os.path.join(folder, 'Dataset'))):
         os.mkdir(os.path.join(folder, 'Dataset'))
     for link, title in zip(all_links, titles):
-        dir = os.path.join(folder, 'Dataset', title) + '.' + link.split('.')[-1]
+        dir = os.path.join(folder, 'Dataset', title) + \
+            '.' + link.split('.')[-1]
         helper.download_file(con, link, dir)
