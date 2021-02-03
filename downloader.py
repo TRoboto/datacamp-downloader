@@ -112,7 +112,12 @@ def start_thread(func):
 
 def wait(thread):
     i = 1
-    while thread.isAlive():
+    if sys.version_info.major == 3 and sys.version_info.minor >= 9:
+        living_thread = thread.is_alive
+    else:
+        living_thread = thread.isAlive
+
+    while living_thread():
         print('Waiting %s%s' % ('.' * i, ' ' * (3 - i)), end='\r')
         i = i + 1 if i < 3 else 1
         time.sleep(0.4)
