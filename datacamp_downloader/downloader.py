@@ -6,7 +6,7 @@ import click
 import config
 import pickle
 
-session = config.Session.load()
+session = config.Session().load()
 
 
 @click.group()

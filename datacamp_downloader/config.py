@@ -7,6 +7,8 @@ import os
 import pickle
 import codecs
 import subprocess
+import tempfile
+from pathlib import Path
 
 
 class Logger:
@@ -29,13 +31,21 @@ class Session:
         self.loggedin = False
         self.data = None
         self.session = None
+        self.savefile = Path(tempfile.gettempdir()) / ".datacamp"
+
+        self.username = None
+        self.password = None
+        self.token = None
 
     def login(self, username, password):
-        if self.loggedin:
+        if username == self.username and self.password == password and self.loggedin:
             Logger.info("Already logged in!")
             return
 
         self.restart_session()
+        self.username = username
+        self.password = password
+
         req = self.session.get(LOGIN_URL)
         if not req or req.status_code != 200 or not req.text:
             Logger.error("Cannot access datacamp website!")
@@ -65,12 +75,12 @@ class Session:
         self._set_profile()
 
     def set_token(self, token):
-        if self.loggedin:
+        if self.token == token and self.loggedin:
             Logger.normal("Already logged in!")
             return
 
-        self.token = token
         self.restart_session()
+        self.token = token
         cookie = {
             "name": "_dct",
             "value": token,
@@ -102,17 +112,13 @@ class Session:
         self.save()
 
     def save(self):
-        pickled = codecs.encode(pickle.dumps(self), "base64").decode()
-        os.putenv("DATACAMP_SESSION", pickled)
+        pickled = pickle.dumps(self)
+        self.savefile.write_bytes(pickled)
 
-    @staticmethod
-    def load():
-        session = os.environ.get("DATACAMP_SESSION")
-        print(session)
-        if session:
-            session = pickle.loads(codecs.decode(session.encode(), "base64"))
-            return session
-        return Session()
+    def load(self):
+        if self.savefile.exists():
+            return pickle.load(self.savefile.open("rb"))
+        return self
 
     def restart_session(self):
         headers = {
@@ -136,6 +142,8 @@ class Session:
         s = requests.Session()
         s.headers = headers
         self.session = cloudscraper.create_scraper(s)
+        # remove old session
+        self.savefile.unlink(missing_ok=True)
 
     def add_cookie(self, **cookie):
         self.session.cookies.set(**cookie)
