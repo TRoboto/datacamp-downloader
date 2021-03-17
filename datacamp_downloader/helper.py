@@ -4,20 +4,6 @@ import sys
 import time
 
 
-class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
-    BKBLUE = '\x1b[7;37;44m'
-    BKGREEN = '\x1b[7;37;42m'
-    BKENDC = '\x1b[0m'
-
-
 def download_file(con, video_link, location):
     # start = time.clock()
     while True:
@@ -29,8 +15,8 @@ def download_file(con, video_link, location):
     mkdir(location)
     if file_exist(location):
         return
-    with open(location, 'wb') as f:
-        total_length = response.headers.get('content-length')
+    with open(location, "wb") as f:
+        total_length = response.headers.get("content-length")
         if total_length is None:  # no content length header
             f.write(response.content)
         else:
@@ -40,18 +26,24 @@ def download_file(con, video_link, location):
                 dl += len(data)
                 f.write(data)
                 done = int(50 * dl / total_length)
-                sys.stdout.write("'{}{}{}' {}[%s%s] %d%% {}\r"
-                                 .format(bcolors.OKBLUE, os.path.basename(location),
-                                         bcolors.ENDC, bcolors.WARNING, bcolors.ENDC) % ('=' * done,
-                                                                                         ' ' * (50 - done), done * 2))
+                sys.stdout.write(
+                    "'{}{}{}' {}[%s%s] %d%% {}\r".format(
+                        bcolors.OKBLUE,
+                        os.path.basename(location),
+                        bcolors.ENDC,
+                        bcolors.WARNING,
+                        bcolors.ENDC,
+                    )
+                    % ("=" * done, " " * (50 - done), done * 2)
+                )
                 #  dl//(time.clock() - start) / 800000))
                 sys.stdout.flush()
-    sys.stdout.write('\n')
+    sys.stdout.write("\n")
 
 
 def save_file(filename, content):
     mkdir(filename)
-    f = open(filename, "w", encoding='utf-8')
+    f = open(filename, "w", encoding="utf-8")
     f.write(content)
     f.close()
 
@@ -62,23 +54,23 @@ def file_exist(file):
 
 def format_filename(name):
     valid_chars = "-_.() %s%s" % (string.ascii_letters, string.digits)
-    filename = ''.join(c for c in name if c in valid_chars)
+    filename = "".join(c for c in name if c in valid_chars)
     return filename
 
 
 def mkdir(location):
     if not os.path.isdir(os.path.dirname(location)):
-        if '/' in location or '\\' in location:
+        if "/" in location or "\\" in location:
             os.makedirs(os.path.dirname(location))
         else:
             os.mkdir(location)
 
 
 def fix_link(link):
-    if '?' in link:
-        link += '&embedded=true'
+    if "?" in link:
+        link += "&embedded=true"
     else:
-        link += '?embedded=true'
+        link += "?embedded=true"
     return link
 
 
