@@ -1,6 +1,20 @@
 from bs4 import BeautifulSoup
-from helper import Logger
+from helper import Logger, animate_wait
 from constants import *
+
+
+def login_required(f):
+    def wrapper(*args):
+        self = args[0]
+        if not isinstance(self, Datacamp):
+            Logger.error(f"{login_required.__name__} can only decorate Datacamp class.")
+            return
+        if not self.loggedin:
+            Logger.error("Login first!")
+            return
+        return f(*args)
+
+    return wrapper
 
 
 class Datacamp:
@@ -14,6 +28,7 @@ class Datacamp:
         self.loggedin = False
         self.login_data = None
 
+    @animate_wait
     def login(self, username, password):
         if username == self.username and self.password == password and self.loggedin:
             Logger.info("Already logged in!")
@@ -51,6 +66,7 @@ class Datacamp:
 
         self._set_profile()
 
+    @animate_wait
     def set_token(self, token):
         if self.token == token and self.loggedin:
             Logger.info("Already logged in!")
@@ -87,3 +103,8 @@ class Datacamp:
         self.has_active_subscription = data["has_active_subscription"]
 
         self.session.save()
+
+    @animate_wait
+    @login_required
+    def list_completed_tracks(self):
+        Logger.info("text")

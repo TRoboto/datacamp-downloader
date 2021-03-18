@@ -2,6 +2,9 @@ import os
 import string
 import sys
 import time
+import inspect
+import threading
+import itertools
 
 from termcolor import colored
 
@@ -9,15 +12,45 @@ from termcolor import colored
 class Logger:
     @staticmethod
     def error(text):
-        print(colored("ERROR:", "red"), text)
+        Logger.clear()
+        print(colored("\rERROR:", "red"), text)
+
+    @staticmethod
+    def clear():
+        sys.stdout.write("\r" + " " * 100)
 
     @staticmethod
     def warning(text):
-        print(colored("WARNING:", "yellow"), text)
+        Logger.clear()
+        print(colored("\rWARNING:", "yellow"), text)
 
     @staticmethod
     def info(text):
-        print(colored("INFO:", "green"), text)
+        Logger.clear()
+        print(colored("\rINFO:", "green"), text)
+
+
+def animate_wait(f):
+    done = False
+
+    def animate():
+        for c in itertools.cycle(list("/—\|")):
+            if done:
+                break
+            sys.stdout.write("\rPlease wait " + c)
+            time.sleep(0.1)
+            sys.stdout.flush()
+
+    def wrapper(*args):
+        nonlocal done
+        done = False
+        t = threading.Thread(target=animate)
+        t.start()
+        output = f(*args)
+        done = True
+        return output
+
+    return wrapper
 
 
 def download_file(con, video_link, location):
