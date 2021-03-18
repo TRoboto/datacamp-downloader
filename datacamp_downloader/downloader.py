@@ -7,6 +7,7 @@ from session import Session
 import pickle
 
 session = Session().load()
+datacamp = session.datacamp
 
 
 @click.group()
@@ -18,13 +19,13 @@ def main():
 @click.option("--username", prompt=True)
 @click.option("--password", prompt=True, hide_input=True)
 def login(username, password):
-    session.login(username, password)
+    datacamp.login(username, password)
 
 
 @main.command()
 @click.option("--token", prompt=True, hide_input=True)
 def set_token(token):
-    session.set_token(token)
+    datacamp.set_token(token)
 
 
 if __name__ == "__main__":
