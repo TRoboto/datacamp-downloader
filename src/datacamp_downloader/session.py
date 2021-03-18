@@ -9,7 +9,7 @@ from . import SESSION_FILE
 
 class Session:
     def __init__(self) -> None:
-        self.savefile = Path(tempfile.gettempdir()) / ".datacamp"
+        self.savefile = Path(SESSION_FILE)
         self.datacamp = Datacamp(self)
 
     def save(self):

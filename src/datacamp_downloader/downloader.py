@@ -23,7 +23,7 @@ def set_token(token):
 
 
 @main.command()
-@click.option("--refresh/--no-refresh", default=False)
+@click.option("--refresh", is_flag=True, help="Refresh completed tracks.")
 def tracks(refresh):
     """List your completed tracks."""
     datacamp.list_completed_tracks(refresh)
