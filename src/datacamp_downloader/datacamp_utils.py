@@ -1,10 +1,19 @@
-from typing import List
 from bs4 import BeautifulSoup
 import re
+import json
+import requests
 
-from .constants import LOGIN_DATA, LOGIN_DETAILS_URL, LOGIN_URL
+from .constants import (
+    COURSE_DETAILS_API,
+    LOGIN_DATA,
+    LOGIN_DETAILS_URL,
+    LOGIN_URL,
+    PROFILE_URL,
+)
 from .helper import Logger, animate_wait
-from .classes import Course, Track
+from .classes import Track
+from .course import Course
+from .exercise import Exercise
 
 
 def login_required(f):
@@ -119,16 +128,26 @@ class Datacamp:
     def list_completed_courses(self, refresh):
         if refresh or not hasattr(self, "courses"):
             self.get_completed_courses()
-        for course in self.courses:
-            Logger.print(course.name, f"{course.id}-", "blue")
+        rows = [["#", "ID", "Title", "Datasets", "Chapters", "Exercises"]]
+        for i, course in enumerate(self.courses, 1):
+            rows.append(
+                [
+                    i,
+                    course.id,
+                    course.title,
+                    len(course.datasets),
+                    len(course.chapters),
+                    sum([len(c.exercises) for c in course.chapters])
+                    # course.link,
+                ]
+            )
+        Logger.print_table(rows)
 
     @login_required
     @animate_wait
     def get_completed_tracks(self):
         self.tracks = []
-        profile = self.session.get(
-            "https://www.datacamp.com/profile/" + self.login_data["slug"]
-        )
+        profile = self.session.get(PROFILE_URL.format(slug=self.login_data["slug"]))
         soup = BeautifulSoup(profile.text, "html.parser")
         tracks_name = soup.findAll("div", {"class": "track-block__main"})
         tracks_link = soup.findAll(
@@ -146,15 +165,19 @@ class Datacamp:
     @animate_wait
     def get_completed_courses(self):
         self.courses = []
-        profile = self.session.get(
-            "https://www.datacamp.com/profile/" + self.login_data["slug"]
-        )
+        profile = self.session.get(PROFILE_URL.format(slug=self.login_data["slug"]))
         soup = BeautifulSoup(profile.text, "html.parser")
-        courses_name = soup.findAll("h4", {"class": "course-block__title"})
-        courses_link = soup.findAll("a", {"class": re.compile("^course-block__link")})
-        for i in range(len(courses_link)):
-            link = "https://www.datacamp.com" + courses_link[i]["href"]
-            self.courses.append(Course(i + 1, courses_name[i].getText().strip(), link))
-
+        courses_id = soup.findAll("article", {"class": re.compile("^js-async")})
+        for id_tag in courses_id:
+            id = id_tag.get("data-id")
+            try:
+                if not id:
+                    raise ValueError("ID tag not found.")
+                res = self.session.get(COURSE_DETAILS_API.format(id=id))
+                if "error" in res.json():
+                    raise ValueError("Cannot get info.")
+                self.courses.append(Course(**res.json()))
+            except (ValueError, requests.exceptions.RequestException):
+                Logger.warning(f"Couldn't get the course with id={id}")
         self.session.save()
         return self.courses

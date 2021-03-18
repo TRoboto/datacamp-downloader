@@ -79,22 +79,6 @@ def get_course_id_and_title(course_url):
     return course_id, title
 
 
-@helper.memoize
-def get_completed_courses():
-    profile = datacamp.session.get(
-        "https://www.datacamp.com/profile/" + datacamp.login_data["slug"]
-    )
-    soup = BeautifulSoup(profile.text, "html.parser")
-    courses_name = soup.findAll("h4", {"class": "course-block__title"})
-    courses_link = soup.findAll("a", {"class": re.compile("^course-block__link")})
-    print(courses_name)
-    courses = []
-    for i in range(len(courses_link)):
-        link = "https://www.datacamp.com" + courses_link[i]["href"]
-        courses.append(Template(i + 1, courses_name[i].getText().strip(), link))
-    return courses
-
-
 def download_slides(course_id, folder):
     page = con.session.get(
         "https://www.datacamp.com/courses/{}/continue".format(course_id)

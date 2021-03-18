@@ -1,4 +1,3 @@
-from .constants import *
 from .session import Session
 import copyreg
 import ssl

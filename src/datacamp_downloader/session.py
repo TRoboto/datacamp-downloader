@@ -4,7 +4,7 @@ import pickle
 import tempfile
 from pathlib import Path
 from .datacamp_utils import Datacamp
-from . import SESSION_FILE
+from .constants import SESSION_FILE
 
 
 class Session:

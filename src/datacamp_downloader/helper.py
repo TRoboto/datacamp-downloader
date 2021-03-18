@@ -6,6 +6,7 @@ import time
 import threading
 import itertools
 
+from texttable import Texttable
 from termcolor import colored
 
 
@@ -15,8 +16,8 @@ class Logger:
         Logger.print(text, "ERROR:", "red")
 
     @staticmethod
-    def clear():
-        sys.stdout.write("\r" + " " * 100)
+    def clear(add_spaces=True):
+        sys.stdout.write("\r" + (" " * 100 if add_spaces else ""))
 
     @staticmethod
     def warning(text):
@@ -30,6 +31,14 @@ class Logger:
     def print(text, head, color=None, background=None):
         Logger.clear()
         print(colored(f"\r{head}", color, background), text)
+
+    @staticmethod
+    def print_table(rows):
+        Logger.clear(False)
+        table = Texttable()
+        table.set_max_width(100)
+        table.add_rows(rows)
+        print(table.draw())
 
 
 def animate_wait(f):
