@@ -1,8 +1,8 @@
 import os
+from pathlib import Path
 import string
 import sys
 import time
-import inspect
 import threading
 import itertools
 
@@ -12,8 +12,7 @@ from termcolor import colored
 class Logger:
     @staticmethod
     def error(text):
-        Logger.clear()
-        print(colored("\rERROR:", "red"), text)
+        Logger.print(text, "ERROR:", "red")
 
     @staticmethod
     def clear():
@@ -21,13 +20,16 @@ class Logger:
 
     @staticmethod
     def warning(text):
-        Logger.clear()
-        print(colored("\rWARNING:", "yellow"), text)
+        Logger.print(text, "WARNING:", "yellow")
 
     @staticmethod
     def info(text):
+        Logger.print(text, "INFO:", "green")
+
+    @staticmethod
+    def print(text, head, color):
         Logger.clear()
-        print(colored("\rINFO:", "green"), text)
+        print(colored(f"\r{head}", color), text)
 
 
 def animate_wait(f):
@@ -36,6 +38,7 @@ def animate_wait(f):
     def animate():
         for c in itertools.cycle(list("/—\|")):
             if done:
+                sys.stdout.write("\r")
                 break
             sys.stdout.write("\rPlease wait " + c)
             time.sleep(0.1)
@@ -90,11 +93,19 @@ def download_file(con, video_link, location):
     sys.stdout.write("\n")
 
 
-def save_file(filename, content):
-    mkdir(filename)
-    f = open(filename, "w", encoding="utf-8")
+def save_bytes(filepath: str, content: bytes):
+    path = Path(filepath)
+    path.mkdir(exist_ok=True, parents=True)
+    path.write_bytes(content)
+    f = open(filepath, "w", encoding="utf-8")
     f.write(content)
     f.close()
+
+
+def save_text(filepath: str, content: str):
+    path = Path(filepath)
+    path.mkdir(exist_ok=True, parents=True)
+    path.write_text(content, encoding="utf8")
 
 
 def file_exist(file):
@@ -127,16 +138,3 @@ def handle_error(con):
     print(bcolors.FAIL + "Error occurred, trying again...")
     con.set_new_session()
     time.sleep(5)
-
-
-def memoize(func):
-    memo = []
-
-    def wrapper():
-        if not memo:
-            value = func()
-            for x in value:
-                memo.append(x)
-        return memo
-
-    return wrapper

@@ -1,6 +1,10 @@
+from typing import List
 from bs4 import BeautifulSoup
-from helper import Logger, animate_wait
-from constants import *
+import re
+
+from .constants import LOGIN_DATA, LOGIN_DETAILS_URL, LOGIN_URL
+from .helper import Logger, animate_wait
+from .classes import Track
 
 
 def login_required(f):
@@ -20,10 +24,10 @@ def login_required(f):
 class Datacamp:
     def __init__(self, session) -> None:
 
+        self.session = session
         self.username = None
         self.password = None
         self.token = None
-        self.session = session
         self.has_active_subscription = False
         self.loggedin = False
         self.login_data = None
@@ -104,7 +108,29 @@ class Datacamp:
 
         self.session.save()
 
-    @animate_wait
     @login_required
-    def list_completed_tracks(self):
-        Logger.info("text")
+    def list_completed_tracks(self, refresh):
+        if refresh or not self.tracks:
+            self.get_completed_tracks()
+        for track in self.tracks:
+            Logger.print(track.name, f"{track.id}-", "blue")
+
+    @login_required
+    @animate_wait
+    def get_completed_tracks(self):
+        self.tracks = []
+        profile = self.session.get(
+            "https://www.datacamp.com/profile/" + self.login_data["slug"]
+        )
+        soup = BeautifulSoup(profile.text, "html.parser")
+        tracks_name = soup.findAll("div", {"class": "track-block__main"})
+        tracks_link = soup.findAll(
+            "a", {"href": re.compile("^/tracks"), "class": "shim"}
+        )
+        for i in range(len(tracks_link)):
+            link = "https://www.datacamp.com" + tracks_link[i]["href"]
+            self.tracks.append(
+                Track(i + 1, tracks_name[i].getText().replace("\n", " ").strip(), link)
+            )
+        self.session.save()
+        return self.tracks

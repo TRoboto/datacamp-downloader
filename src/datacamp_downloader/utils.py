@@ -4,9 +4,9 @@ import re
 import sys
 
 from . import helper
-from classes import Template
-from config import Config as con
-from helper import bcolors
+from .classes import Template
+from . import datacamp
+from bs4 import BeautifulSoup
 
 
 def download_track(url, folder, videos_download, exercise_download, datasets_download):
@@ -52,7 +52,7 @@ def download_course(
 
 
 def get_chapter_exercises(course_id, chapter_id):
-    page = con.session.get(
+    page = datacamp.session.get(
         "https://campus-api.datacamp.com/api/courses/{}/chapters/{}/progress".format(
             course_id, chapter_id
         )
@@ -61,14 +61,14 @@ def get_chapter_exercises(course_id, chapter_id):
 
 
 def get_course_chapters(course_id):
-    page = con.session.get(
+    page = datacamp.session.get(
         "https://campus-api.datacamp.com/api/courses/{}/progress".format(course_id)
     )
     return page.json()
 
 
 def get_course_id_and_title(course_url):
-    page = con.session.get(helper.fix_link(course_url))
+    page = datacamp.session.get(helper.fix_link(course_url))
     soup = BeautifulSoup(page.text, "html.parser")
     try:
         title = soup.find("title").getText().split("|")[0].strip()
@@ -80,23 +80,10 @@ def get_course_id_and_title(course_url):
 
 
 @helper.memoize
-def get_completed_tracks():
-    profile = con.session.get("https://www.datacamp.com/profile/" + con.data["slug"])
-    soup = BeautifulSoup(profile.text, "html.parser")
-    tracks_name = soup.findAll("div", {"class": "track-block__main"})
-    tracks_link = soup.findAll("a", {"href": re.compile("^/tracks"), "class": "shim"})
-    tracks = []
-    for i in range(len(tracks_link)):
-        link = "https://www.datacamp.com" + tracks_link[i]["href"]
-        tracks.append(
-            Template(i + 1, tracks_name[i].getText().replace("\n", " ").strip(), link)
-        )
-    return tracks
-
-
-@helper.memoize
 def get_completed_courses():
-    profile = con.session.get("https://www.datacamp.com/profile/" + con.data["slug"])
+    profile = datacamp.session.get(
+        "https://www.datacamp.com/profile/" + datacamp.login_data["slug"]
+    )
     soup = BeautifulSoup(profile.text, "html.parser")
     courses_name = soup.findAll("h4", {"class": "course-block__title"})
     courses_link = soup.findAll("a", {"class": re.compile("^course-block__link")})

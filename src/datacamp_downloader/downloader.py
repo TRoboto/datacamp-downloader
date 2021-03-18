@@ -1,13 +1,5 @@
-import os
-import sys
-import threading
-import time
 import click
-from session import Session
-import pickle
-
-session = Session().load()
-datacamp = session.datacamp
+from . import datacamp, session
 
 
 @click.group()
@@ -19,13 +11,28 @@ def main():
 @click.option("--username", prompt=True)
 @click.option("--password", prompt=True, hide_input=True)
 def login(username, password):
+    """Log in to Datacamp using your username and password."""
     datacamp.login(username, password)
 
 
 @main.command()
 @click.option("--token", prompt=True, hide_input=True)
 def set_token(token):
+    """Log in to Datacamp using your token."""
     datacamp.set_token(token)
+
+
+@main.command()
+@click.option("--refresh/--no-refresh", default=False)
+def tracks(refresh):
+    """List your completed tracks."""
+    datacamp.list_completed_tracks(refresh)
+
+
+@main.command()
+def reset():
+    """Restart the session."""
+    session.restart()
 
 
 if __name__ == "__main__":

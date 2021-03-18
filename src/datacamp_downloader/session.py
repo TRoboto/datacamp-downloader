@@ -3,7 +3,8 @@ import cloudscraper
 import pickle
 import tempfile
 from pathlib import Path
-from datacamp import Datacamp
+from .datacamp_utils import Datacamp
+from . import SESSION_FILE
 
 
 class Session:
@@ -15,10 +16,12 @@ class Session:
         pickled = pickle.dumps(self)
         self.savefile.write_bytes(pickled)
 
-    def load(self):
-        if self.savefile.exists():
-            return pickle.load(self.savefile.open("rb"))
-        return self
+    @staticmethod
+    def load():
+        savefile = Path(SESSION_FILE)
+        if savefile.exists():
+            return pickle.load(savefile.open("rb"))
+        return Session()
 
     def restart(self):
         headers = {
