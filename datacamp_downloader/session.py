@@ -1,28 +1,11 @@
 from constants import *
 import requests
 import cloudscraper
-from termcolor import colored
 from bs4 import BeautifulSoup
-import os
 import pickle
-import codecs
-import subprocess
 import tempfile
 from pathlib import Path
-
-
-class Logger:
-    @staticmethod
-    def error(text):
-        print(colored("ERROR:", "red"), text)
-
-    @staticmethod
-    def warning(text):
-        print(colored("WARNING:", "yellow"), text)
-
-    @staticmethod
-    def info(text):
-        print(colored("INFO:", "green"), text)
+from helper import Logger
 
 
 class Session:
@@ -76,7 +59,7 @@ class Session:
 
     def set_token(self, token):
         if self.token == token and self.loggedin:
-            Logger.normal("Already logged in!")
+            Logger.info("Already logged in!")
             return
 
         self.restart_session()
@@ -145,5 +128,5 @@ class Session:
         # remove old session
         self.savefile.unlink(missing_ok=True)
 
-    def add_cookie(self, **cookie):
+    def add_cookie(self, cookie: dict):
         self.session.cookies.set(**cookie)

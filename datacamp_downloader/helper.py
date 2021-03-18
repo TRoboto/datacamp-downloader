@@ -3,6 +3,22 @@ import string
 import sys
 import time
 
+from termcolor import colored
+
+
+class Logger:
+    @staticmethod
+    def error(text):
+        print(colored("ERROR:", "red"), text)
+
+    @staticmethod
+    def warning(text):
+        print(colored("WARNING:", "yellow"), text)
+
+    @staticmethod
+    def info(text):
+        print(colored("INFO:", "green"), text)
+
 
 def download_file(con, video_link, location):
     # start = time.clock()

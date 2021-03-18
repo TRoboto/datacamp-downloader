@@ -3,10 +3,10 @@ import sys
 import threading
 import time
 import click
-import config
+from session import Session
 import pickle
 
-session = config.Session().load()
+session = Session().load()
 
 
 @click.group()
@@ -22,8 +22,9 @@ def login(username, password):
 
 
 @main.command()
-def check_login():
-    print(session.loggedin)
+@click.option("--token", prompt=True, hide_input=True)
+def set_token(token):
+    session.set_token(token)
 
 
 if __name__ == "__main__":
