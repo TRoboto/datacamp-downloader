@@ -28,9 +28,9 @@ class Logger:
         Logger.print(text, "INFO:", "green")
 
     @staticmethod
-    def print(text, head, color=None, background=None):
+    def print(text, head, color=None, background=None, end="\n"):
         Logger.clear()
-        print(colored(f"{head}", color, background), text)
+        print(colored(f"{head}", color, background), text, end=end)
 
     @staticmethod
     def print_table(rows):
@@ -65,19 +65,26 @@ def animate_wait(f):
     return wrapper
 
 
-def download_file(con, video_link, location):
+def download_file(session, link: str, path: Path):
     # start = time.clock()
     while True:
         try:
-            response = con.session.get(video_link, stream=True)
+            response = session.get(link, stream=True)
             break
-        except:
-            handle_error(con)
-    mkdir(location)
-    if file_exist(location):
+        except Exception as e:
+            Logger.warning("Cannot download: " + link)
+            return
+
+    if not path.is_file():
+        path = path / link.split("/")[-1]
+    if path.exists():
+        Logger.warning(f"{path.absolute()} has already been downloaded")
         return
-    with open(location, "wb") as f:
-        total_length = response.headers.get("content-length")
+
+    path.parent.mkdir(exist_ok=True, parents=True)
+    total_length = response.headers.get("content-length")
+
+    with path.open("wb") as f:
         if total_length is None:  # no content length header
             f.write(response.content)
         else:
@@ -87,63 +94,17 @@ def download_file(con, video_link, location):
                 dl += len(data)
                 f.write(data)
                 done = int(50 * dl / total_length)
-                sys.stdout.write(
-                    "'{}{}{}' {}[%s%s] %d%% {}\r".format(
-                        bcolors.OKBLUE,
-                        os.path.basename(location),
-                        bcolors.ENDC,
-                        bcolors.WARNING,
-                        bcolors.ENDC,
-                    )
-                    % ("=" * done, " " * (50 - done), done * 2)
+                Logger.print(
+                    "[%s%s] %d%%" % ("=" * done, " " * (50 - done), done * 2),
+                    f"Downloading [{path.name}]",
+                    "blue",
+                    end="\r",
                 )
-                #  dl//(time.clock() - start) / 800000))
                 sys.stdout.flush()
     sys.stdout.write("\n")
-
-
-def save_bytes(filepath: str, content: bytes):
-    path = Path(filepath)
-    path.mkdir(exist_ok=True, parents=True)
-    path.write_bytes(content)
-    f = open(filepath, "w", encoding="utf-8")
-    f.write(content)
-    f.close()
-
-
-def save_text(filepath: str, content: str):
-    path = Path(filepath)
-    path.mkdir(exist_ok=True, parents=True)
-    path.write_text(content, encoding="utf8")
-
-
-def file_exist(file):
-    return os.path.isfile(file)
 
 
 def format_filename(name):
     valid_chars = "-_.() %s%s" % (string.ascii_letters, string.digits)
     filename = "".join(c for c in name if c in valid_chars)
     return filename
-
-
-def mkdir(location):
-    if not os.path.isdir(os.path.dirname(location)):
-        if "/" in location or "\\" in location:
-            os.makedirs(os.path.dirname(location))
-        else:
-            os.mkdir(location)
-
-
-def fix_link(link):
-    if "?" in link:
-        link += "&embedded=true"
-    else:
-        link += "?embedded=true"
-    return link
-
-
-def handle_error(con):
-    print(bcolors.FAIL + "Error occurred, trying again...")
-    con.set_new_session()
-    time.sleep(5)

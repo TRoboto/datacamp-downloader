@@ -2,6 +2,8 @@
 
 from typing import List, Any
 
+from .course import TypeEnum
+
 
 class Data:
     id: int
@@ -76,7 +78,7 @@ class Exercise:
     type: str
     version: str
 
-    def __init__(self, data: Data, id: int, type: str, version: str) -> None:
+    def __init__(self, data: Data, id: int, type: TypeEnum, version: str) -> None:
         self.data = data
         self.id = id
         self.type = type

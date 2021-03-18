@@ -1,5 +1,6 @@
 import click
-from . import datacamp, session
+from . import datacamp, active_session
+import os
 
 
 @click.group()
@@ -37,9 +38,28 @@ def courses(refresh):
 
 
 @main.command()
+@click.argument("courses_ids", nargs=-1, required=True)
+@click.option(
+    "--path",
+    "-p",
+    required=True,
+    type=click.Path(dir_okay=True, file_okay=False),
+    help="Path to download directory",
+    default=os.getcwd() + "/Datcamp",
+    show_default=True,
+)
+def download(courses_ids, path):
+    """Download courses given their ids.
+
+    Example: datacamp download id1 id2 id3
+    """
+    datacamp.download_courses(courses_ids, path)
+
+
+@main.command()
 def reset():
     """Restart the session."""
-    session.restart()
+    active_session.restart()
 
 
 if __name__ == "__main__":
