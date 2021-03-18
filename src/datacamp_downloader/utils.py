@@ -4,7 +4,6 @@ import re
 import sys
 
 from . import helper
-from .classes import Template
 from . import datacamp
 from bs4 import BeautifulSoup
 

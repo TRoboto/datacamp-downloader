@@ -16,8 +16,8 @@ class Logger:
         Logger.print(text, "ERROR:", "red")
 
     @staticmethod
-    def clear(add_spaces=True):
-        sys.stdout.write("\r" + (" " * 100 if add_spaces else ""))
+    def clear():
+        sys.stdout.write("\r" + " " * 100 + "\r")
 
     @staticmethod
     def warning(text):
@@ -30,11 +30,11 @@ class Logger:
     @staticmethod
     def print(text, head, color=None, background=None):
         Logger.clear()
-        print(colored(f"\r{head}", color, background), text)
+        print(colored(f"{head}", color, background), text)
 
     @staticmethod
     def print_table(rows):
-        Logger.clear(False)
+        Logger.clear()
         table = Texttable()
         table.set_max_width(100)
         table.add_rows(rows)
