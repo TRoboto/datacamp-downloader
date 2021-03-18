@@ -27,9 +27,9 @@ class Logger:
         Logger.print(text, "INFO:", "green")
 
     @staticmethod
-    def print(text, head, color):
+    def print(text, head, color=None, background=None):
         Logger.clear()
-        print(colored(f"\r{head}", color), text)
+        print(colored(f"\r{head}", color, background), text)
 
 
 def animate_wait(f):

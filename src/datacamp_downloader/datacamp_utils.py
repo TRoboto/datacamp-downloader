@@ -4,7 +4,7 @@ import re
 
 from .constants import LOGIN_DATA, LOGIN_DETAILS_URL, LOGIN_URL
 from .helper import Logger, animate_wait
-from .classes import Track
+from .classes import Course, Track
 
 
 def login_required(f):
@@ -110,10 +110,17 @@ class Datacamp:
 
     @login_required
     def list_completed_tracks(self, refresh):
-        if refresh or not self.tracks:
+        if refresh or not hasattr(self, "tracks"):
             self.get_completed_tracks()
         for track in self.tracks:
             Logger.print(track.name, f"{track.id}-", "blue")
+
+    @login_required
+    def list_completed_courses(self, refresh):
+        if refresh or not hasattr(self, "courses"):
+            self.get_completed_courses()
+        for course in self.courses:
+            Logger.print(course.name, f"{course.id}-", "blue")
 
     @login_required
     @animate_wait
@@ -134,3 +141,20 @@ class Datacamp:
             )
         self.session.save()
         return self.tracks
+
+    @login_required
+    @animate_wait
+    def get_completed_courses(self):
+        self.courses = []
+        profile = self.session.get(
+            "https://www.datacamp.com/profile/" + self.login_data["slug"]
+        )
+        soup = BeautifulSoup(profile.text, "html.parser")
+        courses_name = soup.findAll("h4", {"class": "course-block__title"})
+        courses_link = soup.findAll("a", {"class": re.compile("^course-block__link")})
+        for i in range(len(courses_link)):
+            link = "https://www.datacamp.com" + courses_link[i]["href"]
+            self.courses.append(Course(i + 1, courses_name[i].getText().strip(), link))
+
+        self.session.save()
+        return self.courses

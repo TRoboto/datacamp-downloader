@@ -30,6 +30,13 @@ def tracks(refresh):
 
 
 @main.command()
+@click.option("--refresh", is_flag=True, help="Refresh completed courses.")
+def courses(refresh):
+    """List your completed courses."""
+    datacamp.list_completed_courses(refresh)
+
+
+@main.command()
 def reset():
     """Restart the session."""
     session.restart()
