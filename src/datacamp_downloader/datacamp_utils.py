@@ -8,7 +8,6 @@ from .constants import (
     COURSE_DETAILS_API,
     EXERCISE_DETAILS_API,
     LANGMAP,
-    LOGIN_DATA,
     LOGIN_DETAILS_URL,
     LOGIN_URL,
     PROFILE_URL,
@@ -97,9 +96,11 @@ class Datacamp:
 
         login_req = self.session.post(
             LOGIN_URL,
-            data=LOGIN_DATA.format(
-                email=username, password=password, authenticity_token=authenticity_token
-            ),
+            params=[
+                ("authenticity_token", authenticity_token),
+                ("user[email]", username),
+                ("user[password]", password),
+            ],
         )
         if (
             not login_req
