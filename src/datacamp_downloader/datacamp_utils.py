@@ -72,6 +72,7 @@ class Datacamp:
         self.tracks = []
 
     @animate_wait
+    @try_except_request
     def login(self, username, password):
         if username == self.username and self.password == password and self.loggedin:
             Logger.info("Already logged in!")
