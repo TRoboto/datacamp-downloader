@@ -55,11 +55,9 @@ def courses(refresh):
 @click.option("--videos/--no-videos", default=True, help="Download videos.")
 @click.option("--exercises/--no-exercises", default=True, help="Download exercises.")
 @click.option("--subtitle/--no-subtitle", default=True, help="Download subtitle.")
+@click.option("--audios", default=False, help="Download audio files if available.")
 @click.option(
-    "--audios",
-    is_flag=True,
-    default=False,
-    help="Download audio files if available.",
+    "--scripts", "--transcript", default=True, help="Download scripts or transcripts"
 )
 @click.option(
     "--no-warnings",
@@ -77,7 +75,8 @@ def download(
     videos,
     exercises,
     subtitle,
-    include_audios,
+    audios,
+    scripts,
     warnings,
 ):
     """Download courses given their ids.
@@ -86,7 +85,15 @@ def download(
     """
     Logger.show_warnings = warnings
     datacamp.download_courses(
-        courses_ids, path, slides, datasets, videos, exercises, subtitle, include_audios
+        courses_ids,
+        path,
+        slides,
+        datasets,
+        videos,
+        exercises,
+        subtitle,
+        audios,
+        scripts,
     )
 
 

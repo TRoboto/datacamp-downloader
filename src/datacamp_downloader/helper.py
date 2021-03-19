@@ -68,7 +68,7 @@ def animate_wait(f):
     return wrapper
 
 
-def download_file(session, link: str, path: Path):
+def download_file(session, link: str, path: Path, progress=True):
     # start = time.clock()
     while True:
         try:
@@ -78,8 +78,6 @@ def download_file(session, link: str, path: Path):
             Logger.warning("Cannot download: " + link)
             return
 
-    if not path.is_file():
-        path = path / link.split("/")[-1]
     if path.exists():
         Logger.warning(f"{path.absolute()} is already downloaded")
         return
@@ -96,8 +94,10 @@ def download_file(session, link: str, path: Path):
             for data in response.iter_content(chunk_size=1024 * 1024):  # 1MB
                 dl += len(data)
                 f.write(data)
-                print_progress(dl, total_length, path.name)
-    sys.stdout.write("\n")
+                if progress:
+                    print_progress(dl, total_length, path.name)
+    if progress:
+        sys.stdout.write("\n")
 
 
 def print_progress(progress, total, name, max=50):

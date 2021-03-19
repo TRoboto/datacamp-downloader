@@ -49,6 +49,8 @@ class Exercise:
         self.version = version
         if not self.is_video:
             self.data = Data(**data)
+        else:
+            self.data = data
 
     @property
     def is_video(self):

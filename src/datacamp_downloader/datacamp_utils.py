@@ -12,11 +12,13 @@ from .constants import (
     LOGIN_URL,
     PROFILE_URL,
     PROGRESS_API,
+    VIDEO_DETAILS_API,
 )
 from .helper import Logger, animate_wait, download_file, print_progress, save_text
 from .templates.track import Track
 from .templates.course import Chapter, Course
 from .templates.exercise import Exercise
+from .templates.video import Video
 
 
 def login_required(f):
@@ -39,15 +41,16 @@ def login_required(f):
 def try_except_request(f):
     def wrapper(*args):
         self = args[0]
-        id = args[1]
         if not isinstance(self, Datacamp):
-            Logger.error(f"{login_required.__name__} can only decorate Datacamp class.")
+            Logger.error(
+                f"{try_except_request.__name__} can only decorate Datacamp class."
+            )
             return
 
         try:
             return f(*args)
         except (ValueError, requests.exceptions.RequestException):
-            Logger.warning(f"Couldn't get the course with id {id}")
+            Logger.warning(f"Couldn't run {f.__name__} with inputs {args[1:]}")
         return
 
     return wrapper
@@ -158,14 +161,16 @@ class Datacamp:
             self.get_completed_courses()
         rows = [["#", "ID", "Title", "Datasets", "Exercises", "Videos"]]
         for i, course in enumerate(self.courses, 1):
+            all_exercises_count = sum([c.nb_exercises for c in course.chapters])
+            videos_count = sum([c.number_of_videos for c in course.chapters])
             rows.append(
                 [
                     i,
                     course.id,
                     course.title,
                     len(course.datasets),
-                    sum([c.nb_exercises for c in course.chapters]),
-                    sum([c.number_of_videos for c in course.chapters]),
+                    all_exercises_count - videos_count,
+                    videos_count,
                 ]
             )
         Logger.print_table(rows)
@@ -180,7 +185,8 @@ class Datacamp:
         videos,
         exercises,
         subtitle,
-        include_audios,
+        audios,
+        scripts,
     ):
         courses_to_download = [self.get_course(id) for id in courses_ids]
         path = Path(directory)
@@ -211,14 +217,22 @@ class Datacamp:
         if datasets:
             for dataset in course.datasets:
                 download_file(
-                    self.session, dataset.asset_url, download_path / "datasets"
+                    self.session,
+                    dataset.asset_url,
+                    download_path / "datasets" / dataset.asset_url.split("/")[-1],
                 )
         for chapter in course.chapters:
             cpath = download_path / self._get_chapter_name(chapter)
             if slides:
-                download_file(self.session, chapter.slides_link, cpath)
-            if exercises:
-                self.download_exercises(course.id, chapter, cpath)
+                download_file(
+                    self.session,
+                    chapter.slides_link,
+                    cpath / chapter.slides_link.split("/")[-1],
+                )
+            if exercises or videos:
+                self.download_exercises_and_videos(
+                    course.id, chapter, cpath, videos, exercises
+                )
 
     def _get_chapter_name(self, chapter: Chapter):
         if chapter.title and chapter.title_meta:
@@ -227,15 +241,24 @@ class Datacamp:
             return f"chapter-{chapter.number}-{chapter.slug}"
         return f"chapter-{chapter.number}"
 
-    def download_exercises(self, course_id, chapter: Chapter, path: Path):
+    def download_exercises_and_videos(
+        self, course_id, chapter: Chapter, path: Path, videos, exercises
+    ):
         ids = self._get_exercises_ids(course_id, chapter.id)
-        counter = 1
+        exercise_counter = 1
+        video_counter = 1
         for i, id in enumerate(ids, 1):
-            print_progress(i, len(ids), f"Chapter {chapter.number} exercises")
+            print_progress(i, len(ids), f"Chapter {chapter.number} exercises/videos")
             exercise = self._get_exercise(id)
-            if not exercise.is_video:
-                save_text(path / "exercises" / f"ex{counter}.md", str(exercise))
-                counter += 1
+            if exercises and exercise and not exercise.is_video:
+                exercise_path = path / "exercises" / f"ex{exercise_counter}.md"
+                save_text(exercise_path, str(exercise))
+                exercise_counter += 1
+            if videos and exercise and exercise.is_video:
+                video = self._get_video(exercise.data.get("projector_key"))
+                video_path = path / "videos" / f"ch{chapter.number}_{video_counter}.mp4"
+                download_file(self.session, video.video_mp4_link, video_path, False)
+                video_counter += 1
         sys.stdout.write("\n")
 
     @animate_wait
@@ -269,6 +292,15 @@ class Datacamp:
 
         self.session.save()
         return self.courses
+
+    @try_except_request
+    def _get_video(self, id):
+        if not id:
+            raise ValueError("ID tag not found.")
+        res = self.session.get(VIDEO_DETAILS_API.format(hash=id))
+        if "error" in res.json():
+            raise ValueError("Cannot get info.")
+        return Video(**res.json())
 
     @try_except_request
     def _get_exercises_ids(self, course_id, chapter_id):
