@@ -318,6 +318,8 @@ class Datacamp:
                 if subtitles and video.subtitles:
                     for sub in subtitles:
                         subtitle = self._get_subtitle(sub, video)
+                        if not subtitle:
+                            continue
                         download_file(
                             self.session,
                             subtitle.link,
@@ -360,10 +362,11 @@ class Datacamp:
         return self.courses
 
     def _get_subtitle(self, sub, video: Video):
+        if not LANGMAP.get(sub):
+            return
         for subtitle in video.subtitles:
             if subtitle.language == LANGMAP[sub]:
                 return subtitle
-        return
 
     @try_except_request
     def _get_video(self, id):

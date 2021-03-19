@@ -79,7 +79,9 @@ def courses(refresh):
     "-st",
     default=("en",),
     multiple=True,
-    type=click.Choice(["en", "zh", "fr", "de", "it", "ja", "ko", "pt", "ru", "es"]),
+    type=click.Choice(
+        ["en", "zh", "fr", "de", "it", "ja", "ko", "pt", "ru", "es", "none"]
+    ),
     help="Choice subtitles to download.",
     show_default=True,
 )
