@@ -75,9 +75,12 @@ def courses(refresh):
     show_default=True,
 )
 @click.option(
-    "--subtitle/--no-subtitle",
-    default=True,
-    help="Download subtitle.",
+    "--subtitles",
+    "-st",
+    default=("en"),
+    multiple=True,
+    type=click.Choice(["en", "zh", "fr", "de", "it", "ja", "ko", "pt", "ru", "es"]),
+    help="Choice subtitles to download.",
     show_default=True,
 )
 @click.option(
@@ -108,7 +111,7 @@ def download(
     datasets,
     videos,
     exercises,
-    subtitle,
+    subtitles,
     audios,
     scripts,
     warnings,
@@ -125,7 +128,7 @@ def download(
         datasets,
         videos,
         exercises,
-        subtitle,
+        subtitles,
         audios,
         scripts,
     )

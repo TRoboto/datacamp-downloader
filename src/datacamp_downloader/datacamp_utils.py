@@ -7,6 +7,7 @@ import requests
 from .constants import (
     COURSE_DETAILS_API,
     EXERCISE_DETAILS_API,
+    LANGMAP,
     LOGIN_DATA,
     LOGIN_DETAILS_URL,
     LOGIN_URL,
@@ -184,7 +185,7 @@ class Datacamp:
         datasets,
         videos,
         exercises,
-        subtitle,
+        subtitles,
         audios,
         scripts,
     ):
@@ -201,7 +202,7 @@ class Datacamp:
                 datasets,
                 videos,
                 exercises,
-                subtitle,
+                subtitles,
                 audios,
                 scripts,
             )
@@ -214,7 +215,7 @@ class Datacamp:
         datasets,
         videos,
         exercises,
-        subtitle,
+        subtitles,
         audios,
         scripts,
     ):
@@ -243,6 +244,7 @@ class Datacamp:
                     exercises=exercises,
                     audios=audios,
                     scripts=scripts,
+                    subtitles=subtitles,
                 )
 
     def _get_chapter_name(self, chapter: Chapter):
@@ -257,6 +259,7 @@ class Datacamp:
         videos = kwargs.get("videos")
         audios = kwargs.get("audios")
         scripts = kwargs.get("scripts")
+        subtitles = kwargs.get("subtitles")
         ids = self._get_exercises_ids(course_id, chapter.id)
         exercise_counter = 1
         video_counter = 1
@@ -282,16 +285,25 @@ class Datacamp:
                     download_file(
                         self.session,
                         video.audio_link,
-                        video_path.with_suffix(".mp3"),
+                        path / "audios" / f"ch{chapter.number}_{video_counter}.mp3",
                         False,
                     )
                 if scripts and video.script_link:
                     download_file(
                         self.session,
                         video.script_link,
-                        video_path.parent / (video_path.name + "_script.md"),
+                        path / "scripts" / (video_path.name + "_script.md"),
                         False,
                     )
+                if subtitles and video.subtitles:
+                    for sub in subtitles:
+                        subtitle = self._get_subtitle(sub, video)
+                        download_file(
+                            self.session,
+                            subtitle.link,
+                            video_path.parent / (video_path.name + f"_{sub}.vtt"),
+                            False,
+                        )
                 video_counter += 1
         sys.stdout.write("\n")
 
@@ -326,6 +338,12 @@ class Datacamp:
 
         self.session.save()
         return self.courses
+
+    def _get_subtitle(self, sub, video: Video):
+        for subtitle in video.subtitles:
+            if subtitle.language == LANGMAP[sub]:
+                return subtitle
+        return
 
     @try_except_request
     def _get_video(self, id):
