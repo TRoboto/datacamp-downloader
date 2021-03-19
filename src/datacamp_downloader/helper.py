@@ -74,9 +74,8 @@ def download_file(session, link: str, path: Path, progress=True):
         try:
             response = session.get(link, stream=True)
             break
-        except Exception as e:
+        except Exception:
             Logger.warning("Cannot download: " + link)
-            return
 
     if path.exists():
         Logger.warning(f"{path.absolute()} is already downloaded")
