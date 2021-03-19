@@ -1,18 +1,21 @@
 from pathlib import Path
+import sys
 from bs4 import BeautifulSoup
 import re
 import requests
 
 from .constants import (
     COURSE_DETAILS_API,
+    EXERCISE_DETAILS_API,
     LOGIN_DATA,
     LOGIN_DETAILS_URL,
     LOGIN_URL,
     PROFILE_URL,
+    PROGRESS_API,
 )
-from .helper import Logger, animate_wait, download_file
+from .helper import Logger, animate_wait, download_file, print_progress, save_text
 from .classes import Track
-from .course import Course
+from .course import Chapter, Course
 from .exercise import Exercise
 
 
@@ -25,10 +28,27 @@ def login_required(f):
         if not self.loggedin:
             Logger.error("Login first!")
             return
-        if not self.has_active_subscription:
-            Logger.error("No active subscription found.")
-            return
+        # if not self.has_active_subscription:
+        #     Logger.error("No active subscription found.")
+        #     return
         return f(*args)
+
+    return wrapper
+
+
+def try_except_request(f):
+    def wrapper(*args):
+        self = args[0]
+        id = args[1]
+        if not isinstance(self, Datacamp):
+            Logger.error(f"{login_required.__name__} can only decorate Datacamp class.")
+            return
+
+        try:
+            return f(*args)
+        except (ValueError, requests.exceptions.RequestException):
+            Logger.warning(f"Couldn't get the course with id {id}")
+        return
 
     return wrapper
 
@@ -107,7 +127,7 @@ class Datacamp:
         try:
             data = page.json()
         except:
-            Logger.error("Please provide a valid token!")
+            Logger.error("Incorrect input token!")
             return
 
         Logger.info("Hi, " + data["first_name"])
@@ -151,16 +171,31 @@ class Datacamp:
         Logger.print_table(rows)
 
     @login_required
-    def download_courses(self, courses_ids, directory):
-        Logger.info("Preparing...")
+    def download_courses(
+        self,
+        courses_ids,
+        directory,
+        slides,
+        datasets,
+        videos,
+        exercises,
+        subtitle,
+    ):
         courses_to_download = [self.get_course(id) for id in courses_ids]
         path = Path(directory)
         for course in courses_to_download:
             if not course:
                 continue
-            self._download_course(course, path)
+            self._download_course(
+                course,
+                path,
+                slides,
+                datasets,
+                videos,
+                exercises,
+                subtitle,
+            )
 
-    @login_required
     def _download_course(
         self,
         course: Course,
@@ -169,14 +204,39 @@ class Datacamp:
         datasets,
         videos,
         exercises,
+        subtitle,
     ):
         download_path = path / course.slug
+        if datasets:
+            for dataset in course.datasets:
+                download_file(
+                    self.session, dataset.asset_url, download_path / "datasets"
+                )
         for chapter in course.chapters:
-            cpath = download_path / chapter.slug
+            cpath = download_path / self._get_chapter_name(chapter)
             if slides:
-                download_file(self.session, chapter.slides_link, download_path)
+                download_file(self.session, chapter.slides_link, cpath)
+            if exercises:
+                self.download_exercises(course.id, chapter, cpath)
 
-    @login_required
+    def _get_chapter_name(self, chapter: Chapter):
+        if chapter.title and chapter.title_meta:
+            return chapter.slug
+        if chapter.title:
+            return f"chapter-{chapter.number}-{chapter.slug}"
+        return f"chapter-{chapter.number}"
+
+    def download_exercises(self, course_id, chapter: Chapter, path: Path):
+        ids = self._get_exercises_ids(course_id, chapter.id)
+        counter = 1
+        for i, id in enumerate(ids, 1):
+            print_progress(i, len(ids), f"Chapter {chapter.number} exercises")
+            exercise = self._get_exercise(id)
+            if not exercise.is_video:
+                save_text(path / "exercises" / f"ex{counter}.md", str(exercise))
+                counter += 1
+        sys.stdout.write("\n")
+
     @animate_wait
     def get_completed_tracks(self):
         self.tracks = []
@@ -194,7 +254,6 @@ class Datacamp:
         self.session.save()
         return self.tracks
 
-    @login_required
     @animate_wait
     def get_completed_courses(self):
         self.courses = []
@@ -210,18 +269,38 @@ class Datacamp:
         self.session.save()
         return self.courses
 
-    def _get_course(self, id):
-        try:
-            if not id:
-                raise ValueError("ID tag not found.")
-            res = self.session.get(COURSE_DETAILS_API.format(id=id))
-            if "error" in res.json():
-                raise ValueError("Cannot get info.")
-            return Course(**res.json())
-        except (ValueError, requests.exceptions.RequestException):
-            Logger.warning(f"Couldn't get the course with id {id}")
-        return
+    @try_except_request
+    def _get_exercises_ids(self, course_id, chapter_id):
+        if not course_id or not chapter_id:
+            raise ValueError("ID tags not found.")
+        res = self.session.get(
+            PROGRESS_API.format(course_id=course_id, chapter_id=chapter_id)
+        )
+        data = res.json()
+        if "error" in data:
+            raise ValueError("Cannot get info.")
+        ids = [e["exercise_id"] for e in data]
+        return ids
 
+    @try_except_request
+    def _get_exercise(self, id):
+        if not id:
+            raise ValueError("ID tag not found.")
+        res = self.session.get(EXERCISE_DETAILS_API.format(id=id))
+        if "error" in res.json():
+            raise ValueError("Cannot get info.")
+        return Exercise(**res.json())
+
+    @try_except_request
+    def _get_course(self, id):
+        if not id:
+            raise ValueError("ID tag not found.")
+        res = self.session.get(COURSE_DETAILS_API.format(id=id))
+        if "error" in res.json():
+            raise ValueError("Cannot get info.")
+        return Course(**res.json())
+
+    @animate_wait
     def get_course(self, id):
         for course in self.courses:
             if course.id == id:

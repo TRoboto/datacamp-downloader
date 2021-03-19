@@ -1,4 +1,6 @@
 import click
+
+from datacamp_downloader.helper import Logger
 from . import datacamp, active_session
 import os
 
@@ -44,16 +46,34 @@ def courses(refresh):
     "-p",
     required=True,
     type=click.Path(dir_okay=True, file_okay=False),
-    help="Path to download directory",
+    help="Path to the download directory",
     default=os.getcwd() + "/Datcamp",
     show_default=True,
 )
-def download(courses_ids, path):
+@click.option("--slides/--no-slides", default=True, help="Download slides.")
+@click.option("--datasets/--no-datasets", default=True, help="Download datasets.")
+@click.option("--videos/--no-videos", default=True, help="Download videos.")
+@click.option("--exercises/--no-exercises", default=True, help="Download exercises.")
+@click.option("--subtitle/--no-subtitle", default=True, help="Download subtitle.")
+@click.option(
+    "--no-warnings",
+    "warnings",
+    flag_value=False,
+    is_flag=True,
+    default=True,
+    help="Disable warnings.",
+)
+def download(
+    courses_ids, path, slides, datasets, videos, exercises, subtitle, warnings
+):
     """Download courses given their ids.
 
     Example: datacamp download id1 id2 id3
     """
-    datacamp.download_courses(courses_ids, path)
+    Logger.show_warnings = warnings
+    datacamp.download_courses(
+        courses_ids, path, slides, datasets, videos, exercises, subtitle
+    )
 
 
 @main.command()

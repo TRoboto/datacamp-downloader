@@ -11,29 +11,32 @@ from termcolor import colored
 
 
 class Logger:
-    @staticmethod
-    def error(text):
+    show_warnings = True
+
+    @classmethod
+    def error(cls, text):
         Logger.print(text, "ERROR:", "red")
 
-    @staticmethod
-    def clear():
+    @classmethod
+    def clear(cls):
         sys.stdout.write("\r" + " " * 100 + "\r")
 
-    @staticmethod
-    def warning(text):
-        Logger.print(text, "WARNING:", "yellow")
+    @classmethod
+    def warning(cls, text):
+        if cls.show_warnings:
+            Logger.print(text, "WARNING:", "yellow")
 
-    @staticmethod
-    def info(text):
+    @classmethod
+    def info(cls, text):
         Logger.print(text, "INFO:", "green")
 
-    @staticmethod
-    def print(text, head, color=None, background=None, end="\n"):
+    @classmethod
+    def print(cls, text, head, color=None, background=None, end="\n"):
         Logger.clear()
         print(colored(f"{head}", color, background), text, end=end)
 
-    @staticmethod
-    def print_table(rows):
+    @classmethod
+    def print_table(cls, rows):
         Logger.clear()
         table = Texttable()
         table.set_max_width(100)
@@ -78,7 +81,7 @@ def download_file(session, link: str, path: Path):
     if not path.is_file():
         path = path / link.split("/")[-1]
     if path.exists():
-        Logger.warning(f"{path.absolute()} has already been downloaded")
+        Logger.warning(f"{path.absolute()} is already downloaded")
         return
 
     path.parent.mkdir(exist_ok=True, parents=True)
@@ -93,18 +96,28 @@ def download_file(session, link: str, path: Path):
             for data in response.iter_content(chunk_size=1024 * 1024):  # 1MB
                 dl += len(data)
                 f.write(data)
-                done = int(50 * dl / total_length)
-                Logger.print(
-                    "[%s%s] %d%%" % ("=" * done, " " * (50 - done), done * 2),
-                    f"Downloading [{path.name}]",
-                    "blue",
-                    end="\r",
-                )
-                sys.stdout.flush()
+                print_progress(dl, total_length, path.name)
     sys.stdout.write("\n")
 
 
-def format_filename(name):
-    valid_chars = "-_.() %s%s" % (string.ascii_letters, string.digits)
-    filename = "".join(c for c in name if c in valid_chars)
-    return filename
+def print_progress(progress, total, name, max=50):
+    done = int(max * progress / total)
+    Logger.print(
+        "[%s%s] %d%%" % ("=" * done, " " * (max - done), done * 2),
+        f"Downloading [{name}]",
+        "blue",
+        end="\r",
+    )
+    sys.stdout.flush()
+
+
+def save_text(path: Path, content: str):
+    if not path.is_file:
+        Logger.error(f"{path.absolute()} isn't a file")
+        return
+    # if path.exists():
+    #     Logger.warning(f"{path.absolute()} is already downloaded")
+    #     return
+    path.parent.mkdir(exist_ok=True, parents=True)
+    path.write_text(content, encoding="utf8")
+    # Logger.info(f"{path.name} has been saved.")
