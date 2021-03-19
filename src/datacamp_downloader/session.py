@@ -1,7 +1,6 @@
 import requests
 import cloudscraper
 import pickle
-import tempfile
 from pathlib import Path
 from .datacamp_utils import Datacamp
 from .constants import SESSION_FILE

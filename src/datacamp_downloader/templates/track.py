@@ -1,6 +1,5 @@
 from dataclasses import dataclass, field
-from enum import Enum
-from typing import Optional, List, Any
+from typing import List
 from .course import Course
 
 

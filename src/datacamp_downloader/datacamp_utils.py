@@ -14,9 +14,9 @@ from .constants import (
     PROGRESS_API,
 )
 from .helper import Logger, animate_wait, download_file, print_progress, save_text
-from .classes import Track
-from .course import Chapter, Course
-from .exercise import Exercise
+from .templates.track import Track
+from .templates.course import Chapter, Course
+from .templates.exercise import Exercise
 
 
 def login_required(f):
@@ -180,6 +180,7 @@ class Datacamp:
         videos,
         exercises,
         subtitle,
+        include_audios,
     ):
         courses_to_download = [self.get_course(id) for id in courses_ids]
         path = Path(directory)
