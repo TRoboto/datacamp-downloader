@@ -99,7 +99,7 @@ class Datacamp:
             LOGIN_URL,
             data=LOGIN_DATA.format(
                 email=username, password=password, authenticity_token=authenticity_token
-            ).encode("utf-8"),
+            ),
         )
         if (
             not login_req
@@ -135,8 +135,7 @@ class Datacamp:
         except:
             Logger.error("Incorrect input token!")
             return
-
-        Logger.info("Hi, " + data["first_name"])
+        Logger.info("Hi, " + (data["first_name"] or data["last_name"] or data["email"]))
 
         if data["has_active_subscription"]:
             Logger.info("Active subscription found")

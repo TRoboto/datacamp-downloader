@@ -11,15 +11,15 @@ def main():
 
 
 @main.command()
-@click.option("--username", prompt=True)
-@click.option("--password", prompt=True, hide_input=True)
+@click.option("--username", "-u", prompt=True)
+@click.option("--password", "-p", prompt=True, hide_input=True)
 def login(username, password):
     """Log in to Datacamp using your username and password."""
     datacamp.login(username, password)
 
 
 @main.command()
-@click.option("--token", prompt=True, hide_input=True)
+@click.option("--token", "-t", prompt=True, hide_input=True)
 def set_token(token):
     """Log in to Datacamp using your token."""
     datacamp.set_token(token)
