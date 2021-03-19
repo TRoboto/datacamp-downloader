@@ -50,14 +50,48 @@ def courses(refresh):
     default=os.getcwd() + "/Datcamp",
     show_default=True,
 )
-@click.option("--slides/--no-slides", default=True, help="Download slides.")
-@click.option("--datasets/--no-datasets", default=True, help="Download datasets.")
-@click.option("--videos/--no-videos", default=True, help="Download videos.")
-@click.option("--exercises/--no-exercises", default=True, help="Download exercises.")
-@click.option("--subtitle/--no-subtitle", default=True, help="Download subtitle.")
-@click.option("--audios", default=False, help="Download audio files if available.")
 @click.option(
-    "--scripts", "--transcript", default=True, help="Download scripts or transcripts"
+    "--slides/--no-slides",
+    default=True,
+    help="Download slides.",
+    show_default=True,
+)
+@click.option(
+    "--datasets/--no-datasets",
+    default=True,
+    help="Download datasets.",
+    show_default=True,
+)
+@click.option(
+    "--videos/--no-videos",
+    default=True,
+    help="Download videos.",
+    show_default=True,
+)
+@click.option(
+    "--exercises/--no-exercises",
+    default=True,
+    help="Download exercises.",
+    show_default=True,
+)
+@click.option(
+    "--subtitle/--no-subtitle",
+    default=True,
+    help="Download subtitle.",
+    show_default=True,
+)
+@click.option(
+    "--audios/--no-audios",
+    default=False,
+    help="Download audio files.",
+    show_default=True,
+)
+@click.option(
+    "--scripts/--no-scripts",
+    "--transcript/--no-transcript",
+    default=True,
+    show_default=True,
+    help="Download scripts or transcripts",
 )
 @click.option(
     "--no-warnings",
@@ -105,22 +139,3 @@ def reset():
 
 if __name__ == "__main__":
     main()
-
-
-# def login_parser():
-#     parser = ArgumentParser()
-#     parser.add_argument("-t", "--token", required=True, type=str,
-#                         help="Specify your Datacamp authentication token.")
-#     parser.add_argument("-l", "--list", required=True, type=str,
-#                         help="List completed (T) for tracks, (C) for courses")
-#     parser.add_argument("-p", "--path", required=False, default=os.getcwd(), type=str,
-#                         help="Path to download the contents, default is the current directory")
-#     parser.add_argument("-v", "--video", action='store_true',
-#                         help="Include it if you want to download the videos")
-#     parser.add_argument("-e", "--exercise", action='store_true',
-#                         help="Include it if you want to download the exercises")
-#     parser.add_argument("-d", "--dataset", action='store_true',
-#                         help="Include it if you want to download the datasets")
-#     parser.add_argument("-a", "--all", action='store_true',
-#                         help="Include it if you want to download all the track/course and data")
-#     return parser

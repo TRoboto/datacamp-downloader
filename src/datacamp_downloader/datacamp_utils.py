@@ -193,6 +193,7 @@ class Datacamp:
         for course in courses_to_download:
             if not course:
                 continue
+            Logger.info(f"Starts to download [{course.id}] {course.title}")
             self._download_course(
                 course,
                 path,
@@ -201,6 +202,8 @@ class Datacamp:
                 videos,
                 exercises,
                 subtitle,
+                audios,
+                scripts,
             )
 
     def _download_course(
@@ -212,6 +215,8 @@ class Datacamp:
         videos,
         exercises,
         subtitle,
+        audios,
+        scripts,
     ):
         download_path = path / course.slug
         if datasets:
@@ -229,9 +234,15 @@ class Datacamp:
                     chapter.slides_link,
                     cpath / chapter.slides_link.split("/")[-1],
                 )
-            if exercises or videos:
-                self.download_exercises_and_videos(
-                    course.id, chapter, cpath, videos, exercises
+            if exercises or videos or audios or scripts:
+                self.download_others(
+                    course.id,
+                    chapter,
+                    cpath,
+                    videos=videos,
+                    exercises=exercises,
+                    audios=audios,
+                    scripts=scripts,
                 )
 
     def _get_chapter_name(self, chapter: Chapter):
@@ -241,23 +252,46 @@ class Datacamp:
             return f"chapter-{chapter.number}-{chapter.slug}"
         return f"chapter-{chapter.number}"
 
-    def download_exercises_and_videos(
-        self, course_id, chapter: Chapter, path: Path, videos, exercises
-    ):
+    def download_others(self, course_id, chapter: Chapter, path: Path, **kwargs):
+        exercises = kwargs.get("exercises")
+        videos = kwargs.get("videos")
+        audios = kwargs.get("audios")
+        scripts = kwargs.get("scripts")
         ids = self._get_exercises_ids(course_id, chapter.id)
         exercise_counter = 1
         video_counter = 1
         for i, id in enumerate(ids, 1):
-            print_progress(i, len(ids), f"Chapter {chapter.number} exercises/videos")
+            print_progress(i, len(ids), f"chapter {chapter.number}")
             exercise = self._get_exercise(id)
-            if exercises and exercise and not exercise.is_video:
+            if not exercise:
+                continue
+            if exercises and not exercise.is_video:
                 exercise_path = path / "exercises" / f"ex{exercise_counter}.md"
                 save_text(exercise_path, str(exercise))
                 exercise_counter += 1
-            if videos and exercise and exercise.is_video:
+            if videos and exercise.is_video:
                 video = self._get_video(exercise.data.get("projector_key"))
-                video_path = path / "videos" / f"ch{chapter.number}_{video_counter}.mp4"
-                download_file(self.session, video.video_mp4_link, video_path, False)
+                video_path = path / "videos" / f"ch{chapter.number}_{video_counter}"
+                download_file(
+                    self.session,
+                    video.video_mp4_link,
+                    video_path.with_suffix(".mp4"),
+                    False,
+                )
+                if audios and video.audio_link:
+                    download_file(
+                        self.session,
+                        video.audio_link,
+                        video_path.with_suffix(".mp3"),
+                        False,
+                    )
+                if scripts and video.script_link:
+                    download_file(
+                        self.session,
+                        video.script_link,
+                        video_path.parent / (video_path.name + "_script.md"),
+                        False,
+                    )
                 video_counter += 1
         sys.stdout.write("\n")
 
