@@ -20,6 +20,7 @@ from .templates.track import Track
 from .templates.course import Chapter, Course
 from .templates.exercise import Exercise
 from .templates.video import Video
+from cloudscraper.exceptions import CloudflareException
 
 
 def login_required(f):
@@ -50,7 +51,7 @@ def try_except_request(f):
 
         try:
             return f(*args)
-        except (ValueError, requests.exceptions.RequestException):
+        except (ValueError, requests.exceptions.RequestException, CloudflareException):
             Logger.warning(f"Couldn't run {f.__name__} with inputs {args[1:]}")
         return
 
