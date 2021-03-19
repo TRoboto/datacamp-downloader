@@ -77,7 +77,7 @@ def courses(refresh):
 @click.option(
     "--subtitles",
     "-st",
-    default=("en"),
+    default=("en",),
     multiple=True,
     type=click.Choice(["en", "zh", "fr", "de", "it", "ja", "ko", "pt", "ru", "es"]),
     help="Choice subtitles to download.",

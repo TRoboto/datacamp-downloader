@@ -222,14 +222,15 @@ class Datacamp:
         download_path = path / course.slug
         if datasets:
             for dataset in course.datasets:
-                download_file(
-                    self.session,
-                    dataset.asset_url,
-                    download_path / "datasets" / dataset.asset_url.split("/")[-1],
-                )
+                if dataset.asset_url:
+                    download_file(
+                        self.session,
+                        dataset.asset_url,
+                        download_path / "datasets" / dataset.asset_url.split("/")[-1],
+                    )
         for chapter in course.chapters:
             cpath = download_path / self._get_chapter_name(chapter)
-            if slides:
+            if slides and chapter.slides_link:
                 download_file(
                     self.session,
                     chapter.slides_link,
@@ -254,6 +255,16 @@ class Datacamp:
             return f"chapter-{chapter.number}-{chapter.slug}"
         return f"chapter-{chapter.number}"
 
+    def download_normal_exercise(self, exercise: Exercise, path: Path):
+        save_text(path, str(exercise))
+        subexs = exercise.data.subexercises
+        if subexs:
+            for i, subexercise in enumerate(subexs, 1):
+                exercise = self._get_exercise(subexercise)
+                self.download_normal_exercise(
+                    exercise, path.parent / (path.name[:-3] + f"_sub{i}.md")
+                )
+
     def download_others(self, course_id, chapter: Chapter, path: Path, **kwargs):
         exercises = kwargs.get("exercises")
         videos = kwargs.get("videos")
@@ -269,8 +280,9 @@ class Datacamp:
             if not exercise:
                 continue
             if exercises and not exercise.is_video:
-                exercise_path = path / "exercises" / f"ex{exercise_counter}.md"
-                save_text(exercise_path, str(exercise))
+                self.download_normal_exercise(
+                    exercise, path / "exercises" / f"ex{exercise_counter}.md"
+                )
                 exercise_counter += 1
             if videos and exercise.is_video:
                 video = self._get_video(exercise.data.get("projector_key"))
