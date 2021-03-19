@@ -1,6 +1,6 @@
 import click
 
-from datacamp_downloader.helper import Logger
+from .helper import Logger
 from . import datacamp, active_session
 import os
 
