@@ -2,7 +2,6 @@ from pathlib import Path
 import sys
 from bs4 import BeautifulSoup
 import re
-import requests
 
 from .constants import (
     COURSE_DETAILS_API,
@@ -19,7 +18,6 @@ from .templates.track import Track
 from .templates.course import Chapter, Course
 from .templates.exercise import Exercise
 from .templates.video import Video
-from cloudscraper.exceptions import CloudflareException
 
 
 def login_required(f):
@@ -50,7 +48,7 @@ def try_except_request(f):
 
         try:
             return f(*args)
-        except (ValueError, requests.exceptions.RequestException, CloudflareException):
+        except Exception:
             Logger.warning(f"Couldn't run {f.__name__} with inputs {args[1:]}")
         return
 
