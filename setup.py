@@ -3,6 +3,9 @@ import setuptools
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
+with open("requirements.txt", "r", encoding="utf-8") as fh:
+    required = fh.read().splitlines()
+
 setuptools.setup(
     name="datacamp-downloader",  # Replace with your own username
     version="2.0",
@@ -21,6 +24,7 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     package_dir={"": "src"},
+    install_requires=required,
     packages=setuptools.find_packages(where="src"),
     python_requires=">=3.6",
     entry_points={"console_scripts": ["datacamp=datacamp_downloader.downloader:main"]},
