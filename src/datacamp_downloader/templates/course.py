@@ -18,7 +18,13 @@ class Exercise:
     url: str
 
     def __init__(
-        self, type: TypeEnum, title: str, aggregate_xp: int, number: int, url: str
+        self,
+        type: TypeEnum,
+        title: str,
+        aggregate_xp: int,
+        number: int,
+        url: str,
+        **kwargs
     ) -> None:
         self.type = type
         self.title = title
@@ -61,6 +67,7 @@ class Chapter:
         xp: int,
         number_of_videos: int,
         exercises: List[Exercise],
+        **kwargs
     ) -> None:
         self.id = id
         self.title_meta = title_meta
@@ -113,6 +120,7 @@ class Instructor:
         avatar_url: str,
         full_name: str,
         instructor_path: str,
+        **kwargs
     ) -> None:
         self.id = id
         self.marketing_biography = marketing_biography
@@ -226,6 +234,7 @@ class Course:
         original_image_url: str,
         external_slug: str,
         chapters: List[Chapter],
+        **kwargs
     ) -> None:
         self.id = id
         self.title = title

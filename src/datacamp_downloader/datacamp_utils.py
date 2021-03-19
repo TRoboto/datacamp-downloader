@@ -189,12 +189,19 @@ class Datacamp:
         audios,
         scripts,
     ):
-        courses_to_download = [self.get_course(id) for id in courses_ids]
+        if "all" in courses_ids:
+            if not self.courses:
+                self.get_completed_courses()
+            courses_to_download = self.courses
+        else:
+            courses_to_download = [self.get_course(id) for id in courses_ids]
         path = Path(directory)
-        for course in courses_to_download:
+        for i, course in enumerate(courses_to_download, 1):
             if not course:
                 continue
-            Logger.info(f"Starts to download [{course.id}] {course.title}")
+            Logger.info(
+                f"[{i}/{len(courses_to_download)}] Starts to download [{course.id}] {course.title}"
+            )
             self._download_course(
                 course,
                 path,

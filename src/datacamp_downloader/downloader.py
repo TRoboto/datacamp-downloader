@@ -119,6 +119,10 @@ def download(
     """Download courses given their ids.
 
     Example: datacamp download id1 id2 id3
+    To download all your completed courses run:
+    ```
+    datacamp download all
+    ```
     """
     Logger.show_warnings = warnings
     datacamp.download_courses(
