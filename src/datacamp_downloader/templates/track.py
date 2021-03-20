@@ -6,6 +6,6 @@ from .course import Course
 @dataclass
 class Track:
     id: int
-    name: str
+    title: str
     link: str
     courses: List[Course] = field(default_factory=list)
