@@ -30,4 +30,3 @@ setup(
     python_requires=">=3.6",
     entry_points={"console_scripts": ["datacamp=datacamp_downloader.downloader:app"]},
 )
-print("Complete")
