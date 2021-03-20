@@ -127,26 +127,6 @@ class Datacamp:
         self.session.add_cookie(cookie)
         self._set_profile()
 
-    def _set_profile(self):
-        page = self.session.get(LOGIN_DETAILS_URL)
-        try:
-            data = page.json()
-        except:
-            Logger.error("Incorrect input token!")
-            return
-        Logger.info("Hi, " + (data["first_name"] or data["last_name"] or data["email"]))
-
-        if data["has_active_subscription"]:
-            Logger.info("Active subscription found")
-        else:
-            Logger.warning("No active subscription found")
-
-        self.loggedin = True
-        self.login_data = data
-        self.has_active_subscription = data["has_active_subscription"]
-
-        self.session.save()
-
     @login_required
     def list_completed_tracks(self, refresh):
         if refresh or not self.tracks:
@@ -214,54 +194,6 @@ class Datacamp:
                 audios,
                 scripts,
             )
-
-    def _download_course(
-        self,
-        course: Course,
-        path: Path,
-        slides,
-        datasets,
-        videos,
-        exercises,
-        subtitles,
-        audios,
-        scripts,
-    ):
-        download_path = path / (course.slug or course.title.lower().replace(" ", "-"))
-        if datasets:
-            for dataset in course.datasets:
-                if dataset.asset_url:
-                    download_file(
-                        self.session,
-                        dataset.asset_url,
-                        download_path / "datasets" / dataset.asset_url.split("/")[-1],
-                    )
-        for chapter in course.chapters:
-            cpath = download_path / self._get_chapter_name(chapter)
-            if slides and chapter.slides_link:
-                download_file(
-                    self.session,
-                    chapter.slides_link,
-                    cpath / chapter.slides_link.split("/")[-1],
-                )
-            if exercises or videos or audios or scripts:
-                self.download_others(
-                    course.id,
-                    chapter,
-                    cpath,
-                    videos=videos,
-                    exercises=exercises,
-                    audios=audios,
-                    scripts=scripts,
-                    subtitles=subtitles,
-                )
-
-    def _get_chapter_name(self, chapter: Chapter):
-        if chapter.title and chapter.title_meta:
-            return chapter.slug
-        if chapter.title:
-            return f"chapter-{chapter.number}-{chapter.title.replace(' ', '-').lower()}"
-        return f"chapter-{chapter.number}"
 
     def download_normal_exercise(self, exercise: Exercise, path: Path):
         save_text(path, str(exercise))
@@ -362,12 +294,87 @@ class Datacamp:
         self.session.save()
         return self.courses
 
+    @animate_wait
+    def get_course(self, id):
+        for course in self.courses:
+            if course.id == id:
+                return course
+        return self._get_course(id)
+
+    def _get_chapter_name(self, chapter: Chapter):
+        if chapter.title and chapter.title_meta:
+            return chapter.slug
+        if chapter.title:
+            return f"chapter-{chapter.number}-{chapter.title.replace(' ', '-').lower()}"
+        return f"chapter-{chapter.number}"
+
+    def _set_profile(self):
+        page = self.session.get(LOGIN_DETAILS_URL)
+        try:
+            data = page.json()
+        except:
+            Logger.error("Incorrect input token!")
+            return
+        Logger.info("Hi, " + (data["first_name"] or data["last_name"] or data["email"]))
+
+        if data["has_active_subscription"]:
+            Logger.info("Active subscription found")
+        else:
+            Logger.warning("No active subscription found")
+
+        self.loggedin = True
+        self.login_data = data
+        self.has_active_subscription = data["has_active_subscription"]
+
+        self.session.save()
+
     def _get_subtitle(self, sub, video: Video):
         if not LANGMAP.get(sub):
             return
         for subtitle in video.subtitles:
             if subtitle.language == LANGMAP[sub]:
                 return subtitle
+
+    def _download_course(
+        self,
+        course: Course,
+        path: Path,
+        slides,
+        datasets,
+        videos,
+        exercises,
+        subtitles,
+        audios,
+        scripts,
+    ):
+        download_path = path / (course.slug or course.title.lower().replace(" ", "-"))
+        if datasets:
+            for dataset in course.datasets:
+                if dataset.asset_url:
+                    download_file(
+                        self.session,
+                        dataset.asset_url,
+                        download_path / "datasets" / dataset.asset_url.split("/")[-1],
+                    )
+        for chapter in course.chapters:
+            cpath = download_path / self._get_chapter_name(chapter)
+            if slides and chapter.slides_link:
+                download_file(
+                    self.session,
+                    chapter.slides_link,
+                    cpath / chapter.slides_link.split("/")[-1],
+                )
+            if exercises or videos or audios or scripts:
+                self.download_others(
+                    course.id,
+                    chapter,
+                    cpath,
+                    videos=videos,
+                    exercises=exercises,
+                    audios=audios,
+                    scripts=scripts,
+                    subtitles=subtitles,
+                )
 
     @try_except_request
     def _get_video(self, id):
@@ -408,10 +415,3 @@ class Datacamp:
         if "error" in res.json():
             raise ValueError("Cannot get info.")
         return Course(**res.json())
-
-    @animate_wait
-    def get_course(self, id):
-        for course in self.courses:
-            if course.id == id:
-                return course
-        return self._get_course(id)
