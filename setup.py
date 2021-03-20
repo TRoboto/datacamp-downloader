@@ -25,6 +25,7 @@ setup(
     ],
     package_dir={"": "src"},
     install_requires=required,
+    setup_requires=["setuptools-git"],
     packages=find_packages(where="src"),
     package_data={"datacamp_downloader": ["*", "*/*", "*/*/*"]},
     python_requires=">=3.6",

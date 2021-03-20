@@ -75,7 +75,7 @@ def download(
         help="IDs for courses to download or `all` to download all your completed courses or `all-t` to download all your completed tracks.",
     ),
     path: Path = typer.Option(
-        Path(os.getcwd() + "/Datcamp"),
+        Path(os.getcwd() + "/Datacamp"),
         "--path",
         "-p",
         help="Path to the download directory",
