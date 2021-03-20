@@ -72,7 +72,7 @@ def courses(
 def download(
     ids: List[str] = typer.Argument(
         ...,
-        help="IDs for courses to download or `all` to download all your completed courses or `all-t` to download all your completed tracks.",
+        help="IDs for courses/tracks to download or `all` to download all your completed courses or `all-t` to download all your completed tracks.",
     ),
     path: Path = typer.Option(
         Path(os.getcwd() + "/Datacamp"),
@@ -137,7 +137,7 @@ def download(
         help="Overwrite files if exist.",
     ),
 ):
-    """Download courses given their ids.
+    """Download courses/tracks given their ids.
 
     Example: datacamp download id1 id2 id3\n
     To download all your completed courses run:
