@@ -200,7 +200,7 @@ class Datacamp:
             if not course:
                 continue
             Logger.info(
-                f"[{i}/{len(courses_to_download)}] Start to download [{course.id}] {course.title}"
+                f"[{i}/{len(courses_to_download)}] Start to download ({course.id}) {course.title}"
             )
             self._download_course(
                 course,

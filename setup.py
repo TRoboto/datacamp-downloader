@@ -28,5 +28,6 @@ setup(
     packages=find_packages(where="src"),
     package_data={"datacamp_downloader": ["*", "*/*", "*/*/*"]},
     python_requires=">=3.6",
-    entry_points={"console_scripts": ["datacamp=datacamp_downloader.downloader:main"]},
+    entry_points={"console_scripts": ["datacamp=datacamp_downloader.downloader:app"]},
 )
+print("Complete")
