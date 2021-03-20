@@ -195,7 +195,8 @@ class Datacamp:
             courses_to_download = self.courses
         else:
             courses_to_download = [self.get_course(id) for id in courses_ids]
-        path = Path(directory)
+
+        path = Path(directory) if not isinstance(directory, Path) else directory
         for i, course in enumerate(courses_to_download, 1):
             if not course:
                 continue
@@ -226,7 +227,7 @@ class Datacamp:
         audios,
         scripts,
     ):
-        download_path = path / course.slug
+        download_path = path / (course.slug or course.title.lower().replace(" ", "-"))
         if datasets:
             for dataset in course.datasets:
                 if dataset.asset_url:
@@ -259,7 +260,7 @@ class Datacamp:
         if chapter.title and chapter.title_meta:
             return chapter.slug
         if chapter.title:
-            return f"chapter-{chapter.number}-{chapter.slug}"
+            return f"chapter-{chapter.number}-{chapter.title.replace(' ', '-').lower()}"
         return f"chapter-{chapter.number}"
 
     def download_normal_exercise(self, exercise: Exercise, path: Path):

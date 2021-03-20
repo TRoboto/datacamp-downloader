@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import List, Optional
 import typer
 
 from .templates.lang import Language
@@ -70,9 +70,12 @@ def courses(
 
 @app.command()
 def download(
-    courses_ids=typer.Argument(..., help="IDs for courses to download."),
+    courses_ids: List[str] = typer.Argument(
+        ...,
+        help="IDs for courses to download or `all` to download all your completed courses.",
+    ),
     path: Path = typer.Option(
-        os.getcwd() + "/Datcamp",
+        Path(os.getcwd() + "/Datcamp"),
         "--path",
         "-p",
         help="Path to the download directory",
