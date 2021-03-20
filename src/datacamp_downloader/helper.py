@@ -1,10 +1,9 @@
-import os
 from pathlib import Path
-import string
 import sys
 import time
 import threading
 import itertools
+import re
 
 from texttable import Texttable
 from termcolor import colored
@@ -68,17 +67,26 @@ def animate_wait(f):
     return wrapper
 
 
-def download_file(session, link: str, path: Path, progress=True):
+def correct_path(path: str):
+    return re.sub("[^-a-zA-Z0-9_.() /]+", "", path)
+
+
+def download_file(session, link: str, path: Path, progress=True, max_retry=10):
     # start = time.clock()
-    while True:
+    if path.exists():
+        Logger.warning(f"{path.absolute()} is already downloaded")
+        return
+
+    for i in range(max_retry):
         try:
             response = session.get(link, stream=True)
+            i = -1
             break
         except Exception:
             pass
 
-    if path.exists():
-        Logger.warning(f"{path.absolute()} is already downloaded")
+    if i != -1:
+        Logger.error(f"Failed to download {link}")
         return
 
     path.parent.mkdir(exist_ok=True, parents=True)
@@ -120,3 +128,11 @@ def save_text(path: Path, content: str):
     path.parent.mkdir(exist_ok=True, parents=True)
     path.write_text(content, encoding="utf8")
     # Logger.info(f"{path.name} has been saved.")
+
+
+def fix_track_link(link):
+    if "?" in link:
+        link += "&embedded=true"
+    else:
+        link += "?embedded=true"
+    return link

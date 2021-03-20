@@ -13,7 +13,15 @@ from .constants import (
     PROGRESS_API,
     VIDEO_DETAILS_API,
 )
-from .helper import Logger, animate_wait, download_file, print_progress, save_text
+from .helper import (
+    Logger,
+    animate_wait,
+    correct_path,
+    download_file,
+    fix_track_link,
+    print_progress,
+    save_text,
+)
 from .templates.track import Track
 from .templates.course import Chapter, Course
 from .templates.exercise import Exercise
@@ -21,7 +29,7 @@ from .templates.video import Video
 
 
 def login_required(f):
-    def wrapper(*args):
+    def wrapper(*args, **kwargs):
         self = args[0]
         if not isinstance(self, Datacamp):
             Logger.error(f"{login_required.__name__} can only decorate Datacamp class.")
@@ -29,16 +37,16 @@ def login_required(f):
         if not self.loggedin:
             Logger.error("Login first!")
             return
-        # if not self.has_active_subscription:
-        #     Logger.error("No active subscription found.")
-        #     return
-        return f(*args)
+        if not self.has_active_subscription:
+            Logger.error("No active subscription found.")
+            return
+        return f(*args, **kwargs)
 
     return wrapper
 
 
 def try_except_request(f):
-    def wrapper(*args):
+    def wrapper(*args, **kwargs):
         self = args[0]
         if not isinstance(self, Datacamp):
             Logger.error(
@@ -47,7 +55,7 @@ def try_except_request(f):
             return
 
         try:
-            return f(*args)
+            return f(*args, **kwargs)
         except Exception:
             Logger.warning(f"Couldn't run {f.__name__} with inputs {args[1:]}")
         return
@@ -68,6 +76,8 @@ class Datacamp:
 
         self.courses = []
         self.tracks = []
+
+        self.not_found_courses = set()
 
     @animate_wait
     @try_except_request
@@ -128,15 +138,17 @@ class Datacamp:
         self._set_profile()
 
     @login_required
+    @animate_wait
     def list_completed_tracks(self, refresh):
         if refresh or not self.tracks:
             self.get_completed_tracks()
-        rows = [["#", "Title"]]
-        for track in self.tracks:
-            rows.append([track.id, track.name])
+        rows = [["#", "ID", "Title", "Courses"]]
+        for i, track in enumerate(self.tracks, 1):
+            rows.append([i, track.id, track.title, len(track.courses)])
         Logger.print_table(rows)
 
     @login_required
+    @animate_wait
     def list_completed_courses(self, refresh):
         if refresh or not self.courses:
             self.get_completed_courses()
@@ -157,43 +169,40 @@ class Datacamp:
         Logger.print_table(rows)
 
     @login_required
-    def download_courses(
-        self,
-        courses_ids,
-        directory,
-        slides,
-        datasets,
-        videos,
-        exercises,
-        subtitles,
-        audios,
-        scripts,
-    ):
-        if "all" in courses_ids:
+    def download(self, ids, directory, **kwargs):
+        if "all-t" in ids:
+            if not self.tracks:
+                animate_wait(self.get_completed_tracks)()
+            to_download = self.tracks
+        elif "all" in ids:
             if not self.courses:
-                self.get_completed_courses()
-            courses_to_download = self.courses
+                animate_wait(self.get_completed_courses)()
+            to_download = self.courses
         else:
-            courses_to_download = [self.get_course(id) for id in courses_ids]
+            to_download = []
+            for id in ids:
+                if "t" in id:
+                    to_download.append(animate_wait(self.get_track)(id))
+                elif id.isnumeric():
+                    to_download.append(animate_wait(self.get_course)(id))
+        # filter none
+        to_download = [i for i in to_download if i]
 
         path = Path(directory) if not isinstance(directory, Path) else directory
-        for i, course in enumerate(courses_to_download, 1):
-            if not course:
+        if str(path.absolute()) != correct_path(str(path.absolute())):
+            Logger.error(f"Invalid path: {path}")
+            return
+
+        for i, material in enumerate(to_download, 1):
+            if not material:
                 continue
             Logger.info(
-                f"[{i}/{len(courses_to_download)}] Start to download ({course.id}) {course.title}"
+                f"[{i}/{len(to_download)}] Start to download ({material.id}) {material.title}"
             )
-            self._download_course(
-                course,
-                path,
-                slides,
-                datasets,
-                videos,
-                exercises,
-                subtitles,
-                audios,
-                scripts,
-            )
+            if isinstance(material, Course):
+                self.download_course(material, path, **kwargs)
+            else:
+                self.download_track(material, path, **kwargs)
 
     def download_normal_exercise(self, exercise: Exercise, path: Path):
         save_text(path, str(exercise))
@@ -204,6 +213,47 @@ class Datacamp:
                 self.download_normal_exercise(
                     exercise, path.parent / (path.name[:-3] + f"_sub{i}.md")
                 )
+
+    def download_track(self, track: Track, path: Path, **kwargs):
+        path = path / correct_path(track.title)
+        for i, course in enumerate(track.courses, 1):
+            Logger.info(
+                f"[{i}/{len(track.courses)}] Download {course.title} from ({track.title} Track)"
+            )
+            self.download_course(course, path, f"{i}-", **kwargs)
+
+    def download_course(self, course: Course, path: Path, index="", **kwargs):
+        download_path = path / (
+            index + correct_path(course.slug or course.title.lower().replace(" ", "-"))
+        )
+        if kwargs.get("datasets"):
+            for i, dataset in enumerate(course.datasets, 1):
+                print_progress(i, len(course.datasets), f"datasets")
+                if dataset.asset_url:
+                    download_file(
+                        self.session,
+                        dataset.asset_url,
+                        download_path
+                        / "datasets"
+                        / correct_path(dataset.asset_url.split("/")[-1]),
+                        False,
+                    )
+            sys.stdout.write("\n")
+        for chapter in course.chapters:
+            cpath = download_path / self._get_chapter_name(chapter)
+            if kwargs.get("slides") and chapter.slides_link:
+                download_file(
+                    self.session,
+                    chapter.slides_link,
+                    cpath / correct_path(chapter.slides_link.split("/")[-1]),
+                )
+            if (
+                kwargs.get("exercises")
+                or kwargs.get("videos")
+                or kwargs.get("audios")
+                or kwargs.get("scripts")
+            ):
+                self.download_others(course.id, chapter, cpath, **kwargs)
 
     def download_others(self, course_id, chapter: Chapter, path: Path, **kwargs):
         exercises = kwargs.get("exercises")
@@ -232,7 +282,6 @@ class Datacamp:
                         self.session,
                         video.video_mp4_link,
                         video_path.with_suffix(".mp4"),
-                        False,
                     )
                 if audios and video.audio_link:
                     download_file(
@@ -260,52 +309,85 @@ class Datacamp:
                             False,
                         )
                 video_counter += 1
+            print_progress(i, len(ids), f"chapter {chapter.number}")
         sys.stdout.write("\n")
 
-    @animate_wait
     def get_completed_tracks(self):
         self.tracks = []
         profile = self.session.get(PROFILE_URL.format(slug=self.login_data["slug"]))
         soup = BeautifulSoup(profile.text, "html.parser")
-        tracks_name = soup.findAll("div", {"class": "track-block__main"})
+        tracks_title = soup.findAll("div", {"class": "track-block__main"})
         tracks_link = soup.findAll(
             "a", {"href": re.compile("^/tracks"), "class": "shim"}
         )
         for i in range(len(tracks_link)):
             link = "https://www.datacamp.com" + tracks_link[i]["href"]
             self.tracks.append(
-                Track(i + 1, tracks_name[i].getText().replace("\n", " ").strip(), link)
+                Track(
+                    f"t{i + 1}",
+                    tracks_title[i].getText().replace("\n", " ").strip(),
+                    link,
+                )
             )
+        courses = set()
+        # add courses
+        for track in self.tracks:
+            track.courses = self._get_courses_from_link(fix_track_link(track.link))
+            courses.update(track.courses)
+        # add to courses
+        current_ids = [c.id for c in self.courses]
+        for course in courses:
+            if course.id not in current_ids:
+                self.courses.append(course)
+
         self.session.save()
         return self.tracks
 
-    @animate_wait
     def get_completed_courses(self):
-        self.courses = []
-        profile = self.session.get(PROFILE_URL.format(slug=self.login_data["slug"]))
-        soup = BeautifulSoup(profile.text, "html.parser")
-        courses_id = soup.findAll("article", {"class": re.compile("^js-async")})
-        for id_tag in courses_id:
-            id = id_tag.get("data-id")
-            course = self._get_course(id)
-            if course:
-                self.courses.append(course)
+        self.courses = self._get_courses_from_link(
+            PROFILE_URL.format(slug=self.login_data["slug"])
+        )
 
         self.session.save()
         return self.courses
 
-    @animate_wait
     def get_course(self, id):
+        if id in self.not_found_courses:
+            return
         for course in self.courses:
             if course.id == id:
                 return course
         return self._get_course(id)
 
+    def get_track(self, id):
+        if not self.tracks:
+            self.get_completed_tracks()
+        for track in self.tracks:
+            if track.id == id:
+                return track
+
+    @try_except_request
+    def _get_courses_from_link(self, link: str):
+        html = self.session.get(link)
+        soup = BeautifulSoup(html.text, "html.parser")
+        courses_ids = soup.findAll("article", {"class": re.compile("^js-async")})
+        courses = []
+        for id_tag in courses_ids:
+            id = id_tag.get("data-id")
+            if not id:
+                continue
+            course = self.get_course(int(id))
+            if course:
+                courses.append(course)
+        return courses
+
     def _get_chapter_name(self, chapter: Chapter):
         if chapter.title and chapter.title_meta:
-            return chapter.slug
+            return correct_path(chapter.slug)
         if chapter.title:
-            return f"chapter-{chapter.number}-{chapter.title.replace(' ', '-').lower()}"
+            return correct_path(
+                f"chapter-{chapter.number}-{chapter.title.replace(' ', '-').lower()}"
+            )
         return f"chapter-{chapter.number}"
 
     def _set_profile(self):
@@ -334,47 +416,6 @@ class Datacamp:
         for subtitle in video.subtitles:
             if subtitle.language == LANGMAP[sub]:
                 return subtitle
-
-    def _download_course(
-        self,
-        course: Course,
-        path: Path,
-        slides,
-        datasets,
-        videos,
-        exercises,
-        subtitles,
-        audios,
-        scripts,
-    ):
-        download_path = path / (course.slug or course.title.lower().replace(" ", "-"))
-        if datasets:
-            for dataset in course.datasets:
-                if dataset.asset_url:
-                    download_file(
-                        self.session,
-                        dataset.asset_url,
-                        download_path / "datasets" / dataset.asset_url.split("/")[-1],
-                    )
-        for chapter in course.chapters:
-            cpath = download_path / self._get_chapter_name(chapter)
-            if slides and chapter.slides_link:
-                download_file(
-                    self.session,
-                    chapter.slides_link,
-                    cpath / chapter.slides_link.split("/")[-1],
-                )
-            if exercises or videos or audios or scripts:
-                self.download_others(
-                    course.id,
-                    chapter,
-                    cpath,
-                    videos=videos,
-                    exercises=exercises,
-                    audios=audios,
-                    scripts=scripts,
-                    subtitles=subtitles,
-                )
 
     @try_except_request
     def _get_video(self, id):
@@ -410,8 +451,10 @@ class Datacamp:
     @try_except_request
     def _get_course(self, id):
         if not id:
+            self.not_found_courses.add(id)
             raise ValueError("ID tag not found.")
         res = self.session.get(COURSE_DETAILS_API.format(id=id))
         if "error" in res.json():
+            self.not_found_courses.add(id)
             raise ValueError("Cannot get info.")
         return Course(**res.json())

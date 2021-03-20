@@ -70,9 +70,9 @@ def courses(
 
 @app.command()
 def download(
-    courses_ids: List[str] = typer.Argument(
+    ids: List[str] = typer.Argument(
         ...,
-        help="IDs for courses to download or `all` to download all your completed courses.",
+        help="IDs for courses to download or `all` to download all your completed courses or `all-t` to download all your completed tracks.",
     ),
     path: Path = typer.Option(
         Path(os.getcwd() + "/Datcamp"),
@@ -133,20 +133,21 @@ def download(
 
     Example: datacamp download id1 id2 id3\n
     To download all your completed courses run:
-    \tdatacamp download all
-
+    \tdatacamp download all\n
+    To download all your completed tracks run:
+    \tdatacamp download all-t
     """
     Logger.show_warnings = warnings
-    datacamp.download_courses(
-        courses_ids,
+    datacamp.download(
+        ids,
         path,
-        slides,
-        datasets,
-        videos,
-        exercises,
-        subtitles,
-        audios,
-        scripts,
+        slides=slides,
+        datasets=datasets,
+        videos=videos,
+        exercises=exercises,
+        subtitles=subtitles,
+        audios=audios,
+        scripts=scripts,
     )
 
 
