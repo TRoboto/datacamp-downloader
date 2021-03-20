@@ -218,7 +218,7 @@ class Datacamp:
         path = path / correct_path(track.title)
         for i, course in enumerate(track.courses, 1):
             Logger.info(
-                f"[{i}/{len(track.courses)}] Download {course.title} from ({track.title} Track)"
+                f"[{i}/{len(track.courses)}] Download ({course.id}) {course.title} from ({track.title} Track)"
             )
             self.download_course(course, path, f"{i}-", **kwargs)
 
@@ -226,7 +226,7 @@ class Datacamp:
         download_path = path / (
             index + correct_path(course.slug or course.title.lower().replace(" ", "-"))
         )
-        if kwargs.get("datasets"):
+        if kwargs.get("datasets") and course.datasets:
             for i, dataset in enumerate(course.datasets, 1):
                 print_progress(i, len(course.datasets), f"datasets")
                 if dataset.asset_url:

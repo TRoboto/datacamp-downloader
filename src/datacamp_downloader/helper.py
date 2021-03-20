@@ -83,7 +83,7 @@ def download_file(session, link: str, path: Path, progress=True, max_retry=10):
             i = -1
             break
         except Exception:
-            pass
+            Logger.print(f"", f"Retry [{i+1}/{max_retry}]", "magenta", end="")
 
     if i != -1:
         Logger.error(f"Failed to download {link}")
@@ -122,9 +122,9 @@ def save_text(path: Path, content: str):
     if not path.is_file:
         Logger.error(f"{path.absolute()} isn't a file")
         return
-    # if path.exists():
-    #     Logger.warning(f"{path.absolute()} is already downloaded")
-    #     return
+    if path.exists():
+        Logger.warning(f"{path.absolute()} is already downloaded")
+        return
     path.parent.mkdir(exist_ok=True, parents=True)
     path.write_text(content, encoding="utf8")
     # Logger.info(f"{path.name} has been saved.")
