@@ -190,9 +190,6 @@ class Datacamp:
         to_download = [i for i in to_download if i]
 
         path = Path(directory) if not isinstance(directory, Path) else directory
-        if str(path.absolute()) != correct_path(str(path.absolute())):
-            Logger.error(f"Invalid path: {path}")
-            return
 
         for i, material in enumerate(to_download, 1):
             if not material:
