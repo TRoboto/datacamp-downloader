@@ -71,9 +71,11 @@ def correct_path(path: str):
     return re.sub("[^-a-zA-Z0-9_.() /]+", "", path)
 
 
-def download_file(session, link: str, path: Path, progress=True, max_retry=10):
+def download_file(
+    session, link: str, path: Path, progress=True, max_retry=10, overwrite=False
+):
     # start = time.clock()
-    if path.exists():
+    if not overwrite and path.exists():
         Logger.warning(f"{path.absolute()} is already downloaded")
         return
 
@@ -118,11 +120,11 @@ def print_progress(progress, total, name, max=50):
     sys.stdout.flush()
 
 
-def save_text(path: Path, content: str):
+def save_text(path: Path, content: str, overwrite=False):
     if not path.is_file:
         Logger.error(f"{path.absolute()} isn't a file")
         return
-    if path.exists():
+    if not overwrite and path.exists():
         Logger.warning(f"{path.absolute()} is already downloaded")
         return
     path.parent.mkdir(exist_ok=True, parents=True)

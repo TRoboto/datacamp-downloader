@@ -128,6 +128,14 @@ def download(
         is_flag=True,
         help="Disable warnings.",
     ),
+    overwrite: Optional[bool] = typer.Option(
+        False,
+        "--overwrite",
+        "-w",
+        flag_value=True,
+        is_flag=True,
+        help="Overwrite files if exist.",
+    ),
 ):
     """Download courses given their ids.
 
@@ -148,6 +156,7 @@ def download(
         subtitles=subtitles,
         audios=audios,
         scripts=scripts,
+        overwrite=overwrite,
     )
 
 

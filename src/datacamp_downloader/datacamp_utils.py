@@ -170,6 +170,7 @@ class Datacamp:
 
     @login_required
     def download(self, ids, directory, **kwargs):
+        self.overwrite = kwargs.get("overwrite")
         if "all-t" in ids:
             if not self.tracks:
                 animate_wait(self.get_completed_tracks)()
@@ -205,7 +206,7 @@ class Datacamp:
                 self.download_track(material, path, **kwargs)
 
     def download_normal_exercise(self, exercise: Exercise, path: Path):
-        save_text(path, str(exercise))
+        save_text(path, str(exercise), self.overwrite)
         subexs = exercise.data.subexercises
         if subexs:
             for i, subexercise in enumerate(subexs, 1):
@@ -237,6 +238,7 @@ class Datacamp:
                         / "datasets"
                         / correct_path(dataset.asset_url.split("/")[-1]),
                         False,
+                        overwrite=self.overwrite,
                     )
             sys.stdout.write("\n")
         for chapter in course.chapters:
@@ -246,6 +248,7 @@ class Datacamp:
                     self.session,
                     chapter.slides_link,
                     cpath / correct_path(chapter.slides_link.split("/")[-1]),
+                    overwrite=self.overwrite,
                 )
             if (
                 kwargs.get("exercises")
@@ -282,6 +285,7 @@ class Datacamp:
                         self.session,
                         video.video_mp4_link,
                         video_path.with_suffix(".mp4"),
+                        overwrite=self.overwrite,
                     )
                 if audios and video.audio_link:
                     download_file(
@@ -289,6 +293,7 @@ class Datacamp:
                         video.audio_link,
                         path / "audios" / f"ch{chapter.number}_{video_counter}.mp3",
                         False,
+                        overwrite=self.overwrite,
                     )
                 if scripts and video.script_link:
                     download_file(
@@ -296,6 +301,7 @@ class Datacamp:
                         video.script_link,
                         path / "scripts" / (video_path.name + "_script.md"),
                         False,
+                        overwrite=self.overwrite,
                     )
                 if subtitles and video.subtitles:
                     for sub in subtitles:
@@ -307,6 +313,7 @@ class Datacamp:
                             subtitle.link,
                             video_path.parent / (video_path.name + f"_{sub}.vtt"),
                             False,
+                            overwrite=self.overwrite,
                         )
                 video_counter += 1
             print_progress(i, len(ids), f"chapter {chapter.number}")
