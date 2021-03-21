@@ -20,6 +20,7 @@
     - [From source](#from-source)
     - [Autocompletion](#autocompletion)
   - [Getting Started](#getting-started)
+  - [Documentation](#documentation)
     - [Login](#login)
     - [Download](#download)
   - [User Privacy](#user-privacy)
@@ -77,7 +78,7 @@ Then restart the terminal.
 
 ## Documentation
 
-The available commands with full documentation can be accessed here [docs](docs.md)
+The available commands with full documentation can be found in [docs](docs.md)
 
 ## Getting Started
 
