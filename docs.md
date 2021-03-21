@@ -17,7 +17,7 @@ $ datacamp [OPTIONS] COMMAND [ARGS]...
 
 - `courses`: List your completed courses.
 - `download`: Download courses/tracks given their ids.
-- `login`: Log in to Datacamp using your username and...
+- `login`: Log in to Datacamp using your username and password
 - `reset`: Restart the session.
 - `set-token`: Log in to Datacamp using your token.
 - `tracks`: List your completed tracks.

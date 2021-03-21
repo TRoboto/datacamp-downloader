@@ -21,6 +21,8 @@
     - [Autocompletion](#autocompletion)
   - [Getting Started](#getting-started)
     - [Login](#login)
+    - [Download](#download)
+  - [User Privacy](#user-privacy)
   - [Disclaimer](#disclaimer)
 
 ## Description
@@ -41,7 +43,7 @@ If you find this CLI helpful, please support the developers by starring this rep
 
 ### PIP
 
-If you use pip, you can install xinaprocessor with:
+If you use pip, you can install datacamp-downloader with:
 
 ```bash
 pip install datacamp-downloader
@@ -49,13 +51,13 @@ pip install datacamp-downloader
 
 ### From source
 
-You can directly clone this repo and install the library. First clone the repo with:
+You can directly clone this repo and install the tool. First clone the repo with:
 
 ```bash
 git clone https://github.com/TRoboto/datacamp-downloader.git
 ```
 
-Then cd to the directory and install the library with:
+Then cd to the directory and install the tool with:
 
 ```bash
 pip install .
@@ -71,7 +73,7 @@ datacamp --install-autocompletion
 
 Then restart the terminal.
 
-**Note:** autocompletion might not be support by all OS.
+**Note:** autocompletion might not be supported by all operating systems.
 
 ## Documentation
 
@@ -155,9 +157,9 @@ To list your completed **tracks**, run:
 datacamp tracks
 ```
 
-Similar windows to this should appear with your completed courses/tracks:
+Similar output to this should appear with your completed courses/tracks:
 
-```bash
+```text
 +----+-------+-----------------------------------------------------+----------+-----------+--------+
 | #  |  ID   |                        Title                        | Datasets | Exercises | Videos |
 +====+=======+=====================================================+==========+===========+========+
@@ -195,19 +197,19 @@ For example to download the first and fifth course, run:
 datacamp download 799 13369
 ```
 
-- To download all completed courses, run:
+- To download all your completed courses, run:
 
 ```bash
 datacamp download all
 ```
 
-- To download all completed tracks, run:
+- To download all your completed tracks, run:
 
 ```bash
 datacamp download all-t
 ```
 
-This by default will download **videos**, **slides**, **datasets**, **exercises**, **english subtitles** and **transcripts** in organized folders in the current directory.
+This by default will download **videos**, **slides**, **datasets**, **exercises**, **english subtitles** and **transcripts** in organized folders in the **current directory**.
 
 To customize this behavior see `datacamp download` command in the [docs](docs.md).
 
