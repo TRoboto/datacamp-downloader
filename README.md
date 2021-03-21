@@ -1,17 +1,27 @@
 # Datacamp Downloader
 
-[![MIT License](https://img.shields.io/apm/l/atomic-design-ui.svg?)](https://github.com/TRoboto/datacamp-downloader/blob/master/LICENSE)
+[![GitHub license](https://img.shields.io/github/license/TRoboto/datacamp-downloader)](https://github.com/TRoboto/datacamp-downloader/blob/master/LICENSE)
+[![PyPI version](https://badge.fury.io/py/datacamp-downloader.svg)](https://pypi.org/project/datacamp-downloader/)
+[![Documentation Status](https://readthedocs.org/projects/ansicolortags/badge/?version=latest)](docs.md)
+
+[![GitHub stars](https://img.shields.io/github/stars/TRoboto/datacamp-downloader)](https://github.com/TRoboto/datacamp-downloader/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/TRoboto/datacamp-downloader)](https://github.com/TRoboto/datacamp-downloader/network)
+[![GitHub contributors](https://img.shields.io/github/contributors/TRoboto/datacamp-downloader)](https://github.com/TRoboto/datacamp-downloader/graphs/contributors)
 
 ## Table of Contents
 
 - [Datacamp Downloader](#datacamp-downloader)
   - [Table of Contents](#table-of-contents)
   - [Description](#description)
-  - [Instructions](#instructions)
-    - [Installation](#installation)
-    - [Required Arguments](#required-arguments)
-    - [Optional Arguments](#optional-arguments)
-    - [How to use](#how-to-use)
+  - [Installation](#installation)
+    - [PIP](#pip)
+    - [From source](#from-source)
+    - [Autocompletion](#autocompletion)
+  - [Documentation](#documentation)
+  - [Getting Started](#getting-started)
+    - [Login](#login)
+    - [Download](#download)
+  - [User Privacy](#user-privacy)
   - [Disclaimer](#disclaimer)
 
 ## Description
@@ -20,84 +30,82 @@ Datacamp Downloader is a command-line interface tool developed in Python
 in order to help you download your completed contents on [Datacamp](https://datacamp.com)
 and keep them locally on your computer.
 
-Datacamp Downloader helps you download all videos, slides, exercises and some additional
-contents if available (e.g. datasets) and organize them in folders.
+Datacamp Downloader helps you download all videos, slides, audios, exercises, transcripts, datasets and subtitles in organized folders.
 
 The design and development of this tool was inspired by [udacimak](https://github.com/udacimak/udacimak)
 
-**Support!**  
+**Datacampers!**
+
 If you find this CLI helpful, please support the developers by starring this repository.
 
-## Instructions
+## Installation
 
-### Installation
+### PIP
 
-1. Download this repository or clone it using:
-
-```
-git clone https://github.com/TRoboto/datacamp-downloader
-```
-
-2. Open the terminal and change the current working directory to the location where you downloaded/cloned the repo, run:
+If you use pip, you can install datacamp-downloader with:
 
 ```
-cd datacamp-downloader
+pip install datacamp-downloader
 ```
 
-3. Download the required dependancies, run:
+### From source
+
+You can directly clone this repo and install the tool. First clone the repo with:
 
 ```
-pip install -r requirements.txt
+git clone https://github.com/TRoboto/datacamp-downloader.git
 ```
 
-4. Make sure Python 3 is installed using:
+Then cd to the directory and install the tool with:
 
 ```
-python --version
+pip install .
 ```
 
-### Required Arguments
+### Autocompletion
 
-- `-t` or `--token` `YOUR_DATACAMP_AUTH_TOKEN`
-- `-l` or `--list` `T` or `C` such that `T` to list completed tracks and `C` to list completed courses
-
-### Optional Arguments
-
-- `-h` or `--help` show help message
-- `-p` or `--path` Path to download the files; default path is the current directory
-- `-v` or `--video` to download the videos
-- `-e` or `--exercise` to download the exercises
-- `-d` or `--dataset` to download the datasets
-- `-a` or `--all` to download all the track/course and its data
-
-**Note**: The tool downloads slides by default and any additional content if `-v`, `-e` or `-a` are specified.
-
-### How to use
-
-1. First you should configure your token to be able to download your contents, run with either in `T` or `C` list mode:
+To allow command autocompletion with `[TAB][TAB]`, run:
 
 ```
-python downloader.py --token YOUR_DATACAMP_AUTH_TOKEN --list (T | C) [--path DESTINATION] [--video] [--exercise] [--dataset] [--all]
+datacamp --install-autocompletion
 ```
 
-Examples :
+Then restart the terminal.
 
-I. To list your completed track(s) and download slides, videos and exercises in the current directory, run:
+**Note:** autocompletion might not be supported by all operating systems.
+
+## Documentation
+
+The available commands with full documentation can be found in [docs](docs.md)
+
+## Getting Started
+
+---
+
+**IMPORTANT**
+
+You must have a Datacamp account with **active** subscription to use the tool.
+
+---
+
+### Login
+
+- To login using your username or password, run:
 
 ```
-python downloader.py --token YOUR_DATACAMP_AUTH_TOKEN --list T --video --exercise
+datacamp login -u [USERNAME] -p [PASSWORD]
 ```
 
-II. To list your completed track(s) and download slides, videos, exercises and datasets in the current directory, run:
+or simply run:
 
 ```
-python downloader.py --token YOUR_DATACAMP_AUTH_TOKEN --list T --all
+datacamp login
 ```
 
-III. To list your completed course(s) and download slides and datasets in `C:\` directory, run:
+- To login using Datacamp authentication token, run:
 
 ```
-python downloader.py --token YOUR_DATACAMP_AUTH_TOKEN --list C --path C:\ --dataset
+datacamp set-token [TOKEN]
 ```
 
 Datacamp authentication token can be found in Datacamp website browser _cookies_.
@@ -117,33 +125,103 @@ To get your Datacamp authentication, follow these steps:
 3. Go to **Application tab**, then **Storage** > **Cookies** > `https://www.datacamp.com`
 4. Find `_dct` key, its **Value** is the Datacamp authentication token.
 
-**Security Note**  
+---
+
+**Security Note**
+
 Datacamp authentication token is a secret key and is unique to you. **You should not share it publicly**.
 
-Then if you have an active subscription, you should see the following:
+---
+
+If you provided valid credentials, you should see the following:
 
 ```
 Hi, YOUR_NAME
 Active subscription found
-====================================================================================================
-1. Introduction to Databases in Python
-2. Building Chatbots in Python
-3. Introduction to Python
-Enter the id(s) you want to download separated by a space or you can enter 'a-b' to download courses from a to b:
 ```
 
-2. Enter the id(s) you want to download, where the id is the number of the course or track shown on the console.
+### Download
 
-Examples:
+First, you should list your completed courses/track.
 
-I. To download the first course enter `1`  
-II. To download the first and third courses enter `1 3`  
-III. To download the first three courses enter `1-3`
+To list your completed **courses**, run:
 
-where `1-3` is the range of the courses you want to download.
+```
+datacamp courses
+```
+
+To list your completed **tracks**, run:
+
+```
+datacamp tracks
+```
+
+Similar output to this should appear with your completed courses/tracks:
+
+```
++----+-------+-----------------------------------------------------+----------+-----------+--------+
+| #  |  ID   |                        Title                        | Datasets | Exercises | Videos |
++====+=======+=====================================================+==========+===========+========+
+| 1  | 799   | Intermediate Python                                 | 3        | 69        | 18     |
++----+-------+-----------------------------------------------------+----------+-----------+--------+
+| 2  | 15876 | Writing Functions in Python                         | 0        | 31        | 15     |
++----+-------+-----------------------------------------------------+----------+-----------+--------+
+| 3  | 14630 | Writing Efficient Code with pandas                  | 3        | 31        | 14     |
++----+-------+-----------------------------------------------------+----------+-----------+--------+
+| 4  | 1550  | Statistical Thinking in Python (Part 2)             | 10       | 51        | 15     |
++----+-------+-----------------------------------------------------+----------+-----------+--------+
+| 5  | 13369 | Writing Efficient Python Code                       | 1        | 38        | 15     |
++----+-------+-----------------------------------------------------+----------+-----------+--------+
+| 6  | 15108 | Introduction to TensorFlow in Python                | 3        | 36        | 15     |
++----+-------+-----------------------------------------------------+----------+-----------+--------+
+| 7  | 15974 | Unit Testing for Data Science in Python             | 0        | 38        | 17     |
++----+-------+-----------------------------------------------------+----------+-----------+--------+
+| 8  | 14336 | Feature Engineering for Machine Learning in Python  | 2        | 37        | 16     |
++----+-------+-----------------------------------------------------+----------+-----------+--------+
+| 9  | 16921 | Image Processing in Python                          | 1        | 38        | 16     |
++----+-------+-----------------------------------------------------+----------+-----------+--------+
+| 10 | 15162 | Model Validation in Python                          | 2        | 32        | 15     |
++----+-------+-----------------------------------------------------+----------+-----------+--------+
+```
+
+Now, you can download any of the courses/tracks with:
+
+```
+datacamp download id1 id2 id3
+```
+
+For example to download the first and fifth course, run:
+
+```
+datacamp download 799 13369
+```
+
+- To download all your completed courses, run:
+
+```
+datacamp download all
+```
+
+- To download all your completed tracks, run:
+
+```
+datacamp download all-t
+```
+
+This by default will download **videos**, **slides**, **datasets**, **exercises**, **english subtitles** and **transcripts** in organized folders in the **current directory**.
+
+To customize this behavior see `datacamp download` command in the [docs](docs.md).
+
+## User Privacy
+
+`datacamp` creates a session file with your credentials saved in the temp folder. If you no longer need to use the tool, it is preferable to reset the session, which will remove the saved file, with:
+
+```
+datacamp reset
+```
 
 ## Disclaimer
 
-This CLI is provided to help you download Datacamp courses for personal use only. Sharing the content of the courses is strictly prohibited under [Datacamp's Terms of Use](https://www.datacamp.com/terms-of-use/).
+This CLI is provided to help you download Datacamp courses/tracks for personal use only. Sharing the content of the courses is strictly prohibited under [Datacamp's Terms of Use](https://www.datacamp.com/terms-of-use/).
 
 By using this CLI, the developers of this CLI are not responsible for any law infringement caused by the users of this CLI.
