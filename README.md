@@ -2,10 +2,11 @@
 
 [![GitHub license](https://img.shields.io/github/license/TRoboto/datacamp-downloader)](https://github.com/TRoboto/datacamp-downloader/blob/master/LICENSE)
 [![PyPI version](https://badge.fury.io/py/datacamp-downloader.svg)](https://badge.fury.io/py/datacamp-downloader)
+[![Documentation Status](https://readthedocs.org/projects/ansicolortags/badge/?version=latest)](docs.md)
+
 [![GitHub stars](https://img.shields.io/github/stars/TRoboto/datacamp-downloader)](https://github.com/TRoboto/datacamp-downloader/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/TRoboto/datacamp-downloader)](https://github.com/TRoboto/datacamp-downloader/network)
 [![GitHub contributors](https://img.shields.io/github/contributors/TRoboto/datacamp-downloader)](https://github.com/TRoboto/datacamp-downloader/graphs/contributors)
-[![Documentation Status](https://readthedocs.org/projects/ansicolortags/badge/?version=latest)](docs.md)
 
 ## Table of Contents
 
