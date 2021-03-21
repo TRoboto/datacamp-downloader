@@ -5,7 +5,7 @@
 [![Documentation Status](https://readthedocs.org/projects/ansicolortags/badge/?version=latest)](docs.md)
 
 [![GitHub stars](https://img.shields.io/github/stars/TRoboto/datacamp-downloader)](https://github.com/TRoboto/datacamp-downloader/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/TRoboto/datacamp-downloader)](https://github.com/TRoboto/datacamp-downloader/network)
+[![GitHub forks](https://img.shields.io/github/forks/TRoboto/datacamp-downloader)](https://github.com/TRoboto/datacamp-downloader/network/members)
 [![GitHub contributors](https://img.shields.io/github/contributors/TRoboto/datacamp-downloader)](https://github.com/TRoboto/datacamp-downloader/graphs/contributors)
 
 ## Table of Contents
