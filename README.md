@@ -42,7 +42,7 @@ If you find this CLI helpful, please support the developers by starring this rep
 
 If you use pip, you can install datacamp-downloader with:
 
-```bash
+```
 pip install datacamp-downloader
 ```
 
@@ -50,13 +50,13 @@ pip install datacamp-downloader
 
 You can directly clone this repo and install the tool. First clone the repo with:
 
-```bash
+```
 git clone https://github.com/TRoboto/datacamp-downloader.git
 ```
 
 Then cd to the directory and install the tool with:
 
-```bash
+```
 pip install .
 ```
 
@@ -64,7 +64,7 @@ pip install .
 
 To allow command autocompletion with `[TAB][TAB]`, run:
 
-```bash
+```
 datacamp --install-autocompletion
 ```
 
@@ -90,19 +90,19 @@ You must have a Datacamp account with **active** subscription to use the tool.
 
 - To login using your username or password, run:
 
-```bash
+```
 datacamp login -u [USERNAME] -p [PASSWORD]
 ```
 
 or simply run:
 
-```bash
+```
 datacamp login
 ```
 
 - To login using Datacamp authentication token, run:
 
-```bash
+```
 datacamp set-token [TOKEN]
 ```
 
@@ -133,7 +133,7 @@ Datacamp authentication token is a secret key and is unique to you. **You should
 
 If you provided valid credentials, you should see the following:
 
-```text
+```
 Hi, YOUR_NAME
 Active subscription found
 ```
@@ -144,19 +144,19 @@ First, you should list your completed courses/track.
 
 To list your completed **courses**, run:
 
-```bash
+```
 datacamp courses
 ```
 
 To list your completed **tracks**, run:
 
-```bash
+```
 datacamp tracks
 ```
 
 Similar output to this should appear with your completed courses/tracks:
 
-```text
+```
 +----+-------+-----------------------------------------------------+----------+-----------+--------+
 | #  |  ID   |                        Title                        | Datasets | Exercises | Videos |
 +====+=======+=====================================================+==========+===========+========+
@@ -184,25 +184,25 @@ Similar output to this should appear with your completed courses/tracks:
 
 Now, you can download any of the courses/tracks with:
 
-```bash
+```
 datacamp download id1 id2 id3
 ```
 
 For example to download the first and fifth course, run:
 
-```bash
+```
 datacamp download 799 13369
 ```
 
 - To download all your completed courses, run:
 
-```bash
+```
 datacamp download all
 ```
 
 - To download all your completed tracks, run:
 
-```bash
+```
 datacamp download all-t
 ```
 
@@ -214,7 +214,7 @@ To customize this behavior see `datacamp download` command in the [docs](docs.md
 
 `datacamp` creates a session file with your credentials saved in the temp folder. If you no longer need to use the tool, it is preferable to reset the session, which will remove the saved file, with:
 
-```bash
+```
 datacamp reset
 ```
 
