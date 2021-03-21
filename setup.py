@@ -7,7 +7,7 @@ with open("requirements.txt", "r", encoding="utf-8") as fh:
     required = fh.read().splitlines()
 
 setup(
-    name="DatacampDownloader",
+    name="datacamp-downloader",
     version="2.0",
     author="Mohammad Al-Fetyani",
     author_email="m4bh@hotmail.com",
