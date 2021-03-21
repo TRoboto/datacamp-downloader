@@ -78,7 +78,7 @@ def download(
         Path(os.getcwd() + "/Datacamp"),
         "--path",
         "-p",
-        help="Path to the download directory",
+        help="Path to the download directory.",
         dir_okay=True,
         file_okay=False,
     ),
@@ -106,7 +106,7 @@ def download(
         [Language.EN.value],
         "--subtitles",
         "-st",
-        help="Choice subtitles to download.",
+        help="Choose subtitles to download.",
         case_sensitive=False,
     ),
     audios: Optional[bool] = typer.Option(
@@ -119,7 +119,7 @@ def download(
         "--scripts/--no-scripts",
         "--transcript/--no-transcript",
         show_default=True,
-        help="Download scripts or transcripts",
+        help="Download scripts or transcripts.",
     ),
     warnings: Optional[bool] = typer.Option(
         True,
@@ -139,11 +139,11 @@ def download(
 ):
     """Download courses/tracks given their ids.
 
-    Example: datacamp download id1 id2 id3\n
+    Example: `datacamp download id1 id2 id3`\n
     To download all your completed courses run:
-    \tdatacamp download all\n
+    \t`datacamp download all`\n
     To download all your completed tracks run:
-    \tdatacamp download all-t
+    \t`datacamp download all-t`
     """
     Logger.show_warnings = warnings
     datacamp.download(
