@@ -118,6 +118,7 @@ $ datacamp download [OPTIONS] IDS...
 - `-st, --subtitles [en|zh|fr|de|it|ja|ko|pt|ru|es|none]`: Choose subtitles to download. [default: en]
 - `--audios / --no-audios`: Download audio files. [default: False]
 - `--scripts, --transcript / --no-scripts, --no-transcript`: Download scripts or transcripts. [default: True]
+- `--python-file / --no-python-file`: Download your own solution as a python file if available. [default: True]
 - `--no-warnings`: Disable warnings. [default: True]
 - `-w, --overwrite`: Overwrite files if exist. [default: False]
 - `--help`: Show this message and exit.
