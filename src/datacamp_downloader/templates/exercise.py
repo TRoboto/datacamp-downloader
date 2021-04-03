@@ -84,8 +84,17 @@ class Exercise:
     id: int
     type: str
     version: str
+    last_attempt: Optional[str]
 
-    def __init__(self, data: Data, id: int, type: str, version: str, **kwargs) -> None:
+    def __init__(
+        self,
+        data: Data,
+        id: int,
+        type: str,
+        version: str,
+        last_attempt: str = None,
+        **kwargs,
+    ) -> None:
         self.id = id
         self.type = type
         self.version = version
@@ -93,10 +102,15 @@ class Exercise:
             self.data = Data(**data)
         else:
             self.data = data
+        self.last_attempt = last_attempt
 
     @property
     def is_video(self):
         return self.type == TypeEnum.VIDEO_EXERCISE.value
+
+    @property
+    def is_python(self):
+        return self.data.language == "python"
 
     def __str__(self) -> str:
         html = (

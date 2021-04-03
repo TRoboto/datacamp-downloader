@@ -121,6 +121,12 @@ def download(
         show_default=True,
         help="Download scripts or transcripts.",
     ),
+    last_attempt: Optional[bool] = typer.Option(
+        True,
+        "--last-attempt/--no-last-attempt",
+        show_default=True,
+        help="Download your own solution as a python file if available.",
+    ),
     warnings: Optional[bool] = typer.Option(
         True,
         "--no-warnings",
@@ -157,6 +163,7 @@ def download(
         audios=audios,
         scripts=scripts,
         overwrite=overwrite,
+        last_attempt=last_attempt,
     )
 
 

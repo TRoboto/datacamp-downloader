@@ -202,8 +202,16 @@ class Datacamp:
             else:
                 self.download_track(material, path, **kwargs)
 
-    def download_normal_exercise(self, exercise: Exercise, path: Path):
+    def download_normal_exercise(
+        self, exercise: Exercise, path: Path, include_last_attempt: bool = False
+    ):
         save_text(path, str(exercise), self.overwrite)
+        if include_last_attempt and exercise.is_python and exercise.last_attempt:
+            save_text(
+                path.parent / (path.name[:-3] + f".py"),
+                exercise.last_attempt,
+                self.overwrite,
+            )
         subexs = exercise.data.subexercises
         if subexs:
             for i, subexercise in enumerate(subexs, 1):
@@ -261,17 +269,22 @@ class Datacamp:
         audios = kwargs.get("audios")
         scripts = kwargs.get("scripts")
         subtitles = kwargs.get("subtitles")
+        last_attempt = kwargs.get("last_attempt")
         ids = self._get_exercises_ids(course_id, chapter.id)
+        last_attempts = self.get_exercises_last_attempt(course_id, chapter.id)
         exercise_counter = 1
         video_counter = 1
         for i, id in enumerate(ids, 1):
             print_progress(i, len(ids), f"chapter {chapter.number}")
             exercise = self._get_exercise(id)
+            exercise.last_attempt = last_attempts[id]
             if not exercise:
                 continue
             if exercises and not exercise.is_video:
                 self.download_normal_exercise(
-                    exercise, path / "exercises" / f"ex{exercise_counter}.md"
+                    exercise,
+                    path / "exercises" / f"ex{exercise_counter}.md",
+                    last_attempt,
                 )
                 exercise_counter += 1
             if exercise.is_video:
@@ -362,6 +375,17 @@ class Datacamp:
             if course.id == id:
                 return course
         return self._get_course(id)
+
+    @try_except_request
+    def get_exercises_last_attempt(self, course_id, chapter_id):
+        res = self.session.get(
+            PROGRESS_API.format(course_id=course_id, chapter_id=chapter_id)
+        )
+        data = res.json()
+        if "error" in data:
+            raise ValueError("Cannot get info.")
+        last_attempt = {e["exercise_id"]: e["last_attempt"] for e in data}
+        return last_attempt
 
     def get_track(self, id):
         if not self.tracks:
