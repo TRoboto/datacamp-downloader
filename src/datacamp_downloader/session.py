@@ -4,6 +4,7 @@ import pickle
 from pathlib import Path
 from .datacamp_utils import Datacamp
 from .constants import SESSION_FILE
+import os
 
 
 class Session:
@@ -45,7 +46,10 @@ class Session:
         s.headers = headers
         self.session = cloudscraper.create_scraper(s)
         # remove old session
-        self.savefile.unlink(missing_ok=True)
+        try:
+            os.remove(self.savefile)
+        except:
+            pass
         return self
 
     def get(self, *args, **kwargs):
