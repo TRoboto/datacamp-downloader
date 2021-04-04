@@ -27,7 +27,7 @@ setup(
     install_requires=required,
     setup_requires=["setuptools-git"],
     packages=find_packages(where="src"),
-    package_data={"datacamp_downloader": ["*", "*/*", "*/*/*"]},
+    include_package_data=True,
     python_requires=">=3.6",
     entry_points={"console_scripts": ["datacamp=datacamp_downloader.downloader:app"]},
 )
