@@ -9,7 +9,7 @@ from . import datacamp, active_session
 import os
 
 
-__version__ = "2.0.0"
+__version__ = "2.1.0"
 
 
 def version_callback(value: bool):
