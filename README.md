@@ -2,7 +2,7 @@
 
 [![GitHub license](https://img.shields.io/github/license/TRoboto/datacamp-downloader)](https://github.com/TRoboto/datacamp-downloader/blob/master/LICENSE)
 [![PyPI version](https://badge.fury.io/py/datacamp-downloader.svg)](https://pypi.org/project/datacamp-downloader/)
-[![Documentation Status](https://readthedocs.org/projects/ansicolortags/badge/?version=latest)](docs.md)
+[![Documentation Status](https://readthedocs.org/projects/ansicolortags/badge/?version=latest)](https://github.com/TRoboto/datacamp-downloader/blob/master/docs.md)
 
 [![GitHub stars](https://img.shields.io/github/stars/TRoboto/datacamp-downloader)](https://github.com/TRoboto/datacamp-downloader/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/TRoboto/datacamp-downloader)](https://github.com/TRoboto/datacamp-downloader/network/members)
@@ -76,7 +76,7 @@ Then restart the terminal.
 
 ## Documentation
 
-The available commands with full documentation can be found in [docs](docs.md)
+The available commands with full documentation can be found in [docs](https://github.com/TRoboto/datacamp-downloader/blob/master/docs.md)
 
 ## Getting Started
 
@@ -210,7 +210,7 @@ datacamp download all-t
 
 This by default will download **videos**, **slides**, **datasets**, **exercises**, **english subtitles** and **transcripts** in organized folders in the **current directory**.
 
-To customize this behavior see `datacamp download` command in the [docs](docs.md).
+To customize this behavior see `datacamp download` command in the [docs](https://github.com/TRoboto/datacamp-downloader/blob/master/docs.md).
 
 ## User Privacy
 
