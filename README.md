@@ -4,6 +4,7 @@
 [![PyPI version](https://badge.fury.io/py/datacamp-downloader.svg)](https://pypi.org/project/datacamp-downloader/)
 [![Documentation Status](https://readthedocs.org/projects/ansicolortags/badge/?version=latest)](https://github.com/TRoboto/datacamp-downloader/blob/master/docs.md)
 
+[![Downloads](https://pepy.tech/badge/datacamp-downloader/week)](https://pepy.tech/project/datacamp-downloader)
 [![GitHub stars](https://img.shields.io/github/stars/TRoboto/datacamp-downloader)](https://github.com/TRoboto/datacamp-downloader/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/TRoboto/datacamp-downloader)](https://github.com/TRoboto/datacamp-downloader/network/members)
 [![GitHub contributors](https://img.shields.io/github/contributors/TRoboto/datacamp-downloader)](https://github.com/TRoboto/datacamp-downloader/graphs/contributors)
