@@ -59,6 +59,7 @@ def animate_wait(f):
         nonlocal done
         done = False
         t = threading.Thread(target=animate)
+        t.daemon = True
         t.start()
         output = f(*args)
         done = True
