@@ -349,7 +349,10 @@ class Datacamp:
         courses = set()
         # add courses
         for track in self.tracks:
-            track.courses = self._get_courses_from_link(fix_track_link(track.link))
+            courses = self._get_courses_from_link(fix_track_link(track.link))
+            if not courses:
+                continue
+            track.courses = courses
             courses.update(track.courses)
         # add to courses
         current_ids = [c.id for c in self.courses]
@@ -364,6 +367,8 @@ class Datacamp:
         self.courses = self._get_courses_from_link(
             PROFILE_URL.format(slug=self.login_data["slug"])
         )
+        if not self.courses:
+            return []
 
         self.session.save()
         return self.courses
