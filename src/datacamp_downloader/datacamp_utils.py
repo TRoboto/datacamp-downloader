@@ -288,8 +288,9 @@ class Datacamp:
                 )
                 exercise_counter += 1
             if exercise.is_video:
-                video = self._get_video(exercise.data.get("projector_key"))
-                if video is not None:
+                projector_key = exercise.data.get("projector_key")
+                if projector_key is not None:
+                    video = self._get_video(projector_key)
                     video_path = path / "videos" / f"ch{chapter.number}_{video_counter}"
                     if videos and video.video_mp4_link:
                         download_file(
