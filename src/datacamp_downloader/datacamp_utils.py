@@ -289,43 +289,44 @@ class Datacamp:
                 exercise_counter += 1
             if exercise.is_video:
                 video = self._get_video(exercise.data.get("projector_key"))
-                video_path = path / "videos" / f"ch{chapter.number}_{video_counter}"
-                if videos and video.video_mp4_link:
-                    download_file(
-                        self.session,
-                        video.video_mp4_link,
-                        video_path.with_suffix(".mp4"),
-                        overwrite=self.overwrite,
-                    )
-                if audios and video.audio_link:
-                    download_file(
-                        self.session,
-                        video.audio_link,
-                        path / "audios" / f"ch{chapter.number}_{video_counter}.mp3",
-                        False,
-                        overwrite=self.overwrite,
-                    )
-                if scripts and video.script_link:
-                    download_file(
-                        self.session,
-                        video.script_link,
-                        path / "scripts" / (video_path.name + "_script.md"),
-                        False,
-                        overwrite=self.overwrite,
-                    )
-                if subtitles and video.subtitles:
-                    for sub in subtitles:
-                        subtitle = self._get_subtitle(sub, video)
-                        if not subtitle:
-                            continue
+                if video is not None:
+                    video_path = path / "videos" / f"ch{chapter.number}_{video_counter}"
+                    if videos and video.video_mp4_link:
                         download_file(
                             self.session,
-                            subtitle.link,
-                            video_path.parent / (video_path.name + f"_{sub}.vtt"),
+                            video.video_mp4_link,
+                            video_path.with_suffix(".mp4"),
+                            overwrite=self.overwrite,
+                        )
+                    if audios and video.audio_link:
+                        download_file(
+                            self.session,
+                            video.audio_link,
+                            path / "audios" / f"ch{chapter.number}_{video_counter}.mp3",
                             False,
                             overwrite=self.overwrite,
                         )
-                video_counter += 1
+                    if scripts and video.script_link:
+                        download_file(
+                            self.session,
+                            video.script_link,
+                            path / "scripts" / (video_path.name + "_script.md"),
+                            False,
+                            overwrite=self.overwrite,
+                        )
+                    if subtitles and video.subtitles:
+                        for sub in subtitles:
+                            subtitle = self._get_subtitle(sub, video)
+                            if not subtitle:
+                                continue
+                            download_file(
+                                self.session,
+                                subtitle.link,
+                                video_path.parent / (video_path.name + f"_{sub}.vtt"),
+                                False,
+                                overwrite=self.overwrite,
+                            )
+                    video_counter += 1
             print_progress(i, len(ids), f"chapter {chapter.number}")
         sys.stdout.write("\n")
 
