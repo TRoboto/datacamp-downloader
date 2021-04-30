@@ -348,17 +348,17 @@ class Datacamp:
                     link,
                 )
             )
-        courses = set()
+        all_courses = set()
         # add courses
         for track in self.tracks:
             courses = self._get_courses_from_link(fix_track_link(track.link))
             if not courses:
                 continue
             track.courses = courses
-            courses.update(track.courses)
+            all_courses.update(track.courses)
         # add to courses
         current_ids = [c.id for c in self.courses]
-        for course in courses:
+        for course in all_courses:
             if course.id not in current_ids:
                 self.courses.append(course)
 
