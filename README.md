@@ -51,16 +51,10 @@ pip install datacamp-downloader
 
 ### From source
 
-You can directly clone this repo and install the tool. First clone the repo with:
+You can directly clone this repo and install the tool with:
 
 ```
-git clone https://github.com/TRoboto/datacamp-downloader.git
-```
-
-Then cd to the directory and install the tool with:
-
-```
-pip install .
+pip install git+https://github.com/TRoboto/datacamp-downloader.git
 ```
 
 ### Autocompletion
