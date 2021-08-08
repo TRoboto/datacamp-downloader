@@ -1,5 +1,6 @@
 texttable==1.6.3
-cloudscraper>=1.2.58
+undetected_chromedriver>=3.0.3
+selenium>=4.0.0b4
 termcolor==1.1.0
 colorama==0.4.4
 tomd==0.1.3
