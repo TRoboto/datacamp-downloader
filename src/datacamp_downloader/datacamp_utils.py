@@ -310,7 +310,6 @@ class Datacamp:
                         if not subtitle:
                             continue
                         download_file(
-                            self.session,
                             subtitle.link,
                             video_path.parent / (video_path.name + f"_{sub}.vtt"),
                             False,
