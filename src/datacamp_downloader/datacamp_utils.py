@@ -38,9 +38,6 @@ def login_required(f):
         if not self.loggedin:
             Logger.error("Login first!")
             return
-        if not self.has_active_subscription:
-            Logger.error("No active subscription found.")
-            return
         return f(*args, **kwargs)
 
     return wrapper
