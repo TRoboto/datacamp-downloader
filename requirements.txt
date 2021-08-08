@@ -1,8 +1,8 @@
 texttable==1.6.3
-cloudscraper==1.2.56
+cloudscraper>=1.2.58
 termcolor==1.1.0
 colorama==0.4.4
 tomd==0.1.3
 typer==0.3.2
-requests==2.25.1
-beautifulsoup4==4.9.3
+requests>=2.25.1
+beautifulsoup4>=4.9.3
