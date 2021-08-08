@@ -20,6 +20,7 @@ from .helper import (
     correct_path,
     download_file,
     fix_track_link,
+    get_table,
     print_progress,
     save_text,
 )
@@ -134,23 +135,23 @@ class Datacamp:
     @login_required
     @animate_wait
     def list_completed_tracks(self, refresh):
-        if refresh or not self.tracks:
-            self.get_completed_tracks()
-        rows = [["#", "ID", "Title", "Courses"]]
-        for i, track in enumerate(self.tracks, 1):
-            rows.append([i, track.id, track.title, len(track.courses)])
-        Logger.print_table(rows)
+        table = get_table()
+        table.add_row(["#", "ID", "Title", "Courses"])
+        for i, track in enumerate(self.get_completed_tracks(), 1):
+            Logger.clear()
+            table.add_row([i, track.id, track.title, len(track.courses)])
+            table.draw()
 
     @login_required
     @animate_wait
     def list_completed_courses(self, refresh):
-        if refresh or not self.courses:
-            self.get_completed_courses()
-        rows = [["#", "ID", "Title", "Datasets", "Exercises", "Videos"]]
-        for i, course in enumerate(self.courses, 1):
+        table = get_table()
+
+        table.add_row(["#", "ID", "Title", "Datasets", "Exercises", "Videos"])
+        for i, course in enumerate(self.get_completed_courses(refresh), 1):
             all_exercises_count = sum([c.nb_exercises for c in course.chapters])
             videos_count = sum([c.number_of_videos for c in course.chapters])
-            rows.append(
+            table.add_row(
                 [
                     i,
                     course.id,
@@ -160,19 +161,16 @@ class Datacamp:
                     videos_count,
                 ]
             )
-        Logger.print_table(rows)
+            Logger.clear()
+            table.draw()
 
     @login_required
     def download(self, ids, directory, **kwargs):
         self.overwrite = kwargs.get("overwrite")
         if "all-t" in ids:
-            if not self.tracks:
-                animate_wait(self.get_completed_tracks)()
-            to_download = self.tracks
+            to_download = list(animate_wait(self.get_completed_tracks)())
         elif "all" in ids:
-            if not self.courses:
-                animate_wait(self.get_completed_courses)()
-            to_download = self.courses
+            to_download = list(animate_wait(self.get_completed_courses)())
         else:
             to_download = []
             for id in ids:
@@ -319,7 +317,9 @@ class Datacamp:
             print_progress(i, len(ids), f"chapter {chapter.number}")
         sys.stdout.write("\n")
 
-    def get_completed_tracks(self):
+    def get_completed_tracks(self, refresh=False):
+        if self.tracks and not refresh:
+            return self.tracks
         self.session.start()
         self.tracks = []
         profile = self.session.get(PROFILE_URL.format(slug=self.login_data["slug"]))
@@ -345,6 +345,7 @@ class Datacamp:
                 continue
             track.courses = courses
             all_courses.update(track.courses)
+            yield track
         # add to courses
         current_ids = [c.id for c in self.courses]
         for course in all_courses:
@@ -352,9 +353,10 @@ class Datacamp:
                 self.courses.append(course)
 
         self.session.save()
-        return self.tracks
 
-    def get_completed_courses(self):
+    def get_completed_courses(self, refresh=False):
+        if self.courses and not refresh:
+            return self.courses
         self.session.start()
         self.courses = self._get_courses_from_link(
             PROFILE_URL.format(slug=self.login_data["slug"])
@@ -384,8 +386,6 @@ class Datacamp:
         return last_attempt
 
     def get_track(self, id):
-        if not self.tracks:
-            self.get_completed_tracks()
         for track in self.tracks:
             if track.id == id:
                 return track

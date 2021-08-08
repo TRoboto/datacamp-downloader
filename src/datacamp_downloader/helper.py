@@ -35,13 +35,11 @@ class Logger:
         Logger.clear()
         print(colored(f"{head}", color, background), text, end=end)
 
-    @classmethod
-    def print_table(cls, rows):
-        Logger.clear()
-        table = Texttable()
-        table.set_max_width(100)
-        table.add_rows(rows)
-        print(table.draw())
+
+def get_table():
+    table = Texttable()
+    table.set_max_width(100)
+    return table
 
 
 def animate_wait(f):
