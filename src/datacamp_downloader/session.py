@@ -43,7 +43,7 @@ class Session:
             pass
 
     def start(self):
-        self.driver = uc.Chrome()
+        self.driver = uc.Chrome(headless=True)
         self.driver.get(HOME_PAGE)
 
     def bypass_cloudflare(self, url):
