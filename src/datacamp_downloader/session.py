@@ -44,21 +44,22 @@ class Session:
             return
         self.driver = uc.Chrome(headless=True)
         self.driver.get(HOME_PAGE)
+        self.bypass_cloudflare(HOME_PAGE)
         if self.datacamp.token:
             self.add_token(self.datacamp.token)
 
     def bypass_cloudflare(self, url):
-        with self.driver:
-            self.driver.get(url)
+        try:
+            self.driver.find_element(By.ID, "cf-spinner-allow-5-secs")
+            with self.driver:
+                self.driver.get(url)
+        except:
+            pass
 
     def get(self, url):
         self.start()
         self.driver.get(url)
-        try:
-            self.driver.find_element(By.ID, "cf-spinner-allow-5-secs")
-            self.bypass_cloudflare(url)
-        except:
-            pass
+        self.bypass_cloudflare(url)
         return self.driver.page_source
 
     def get_json(self, url):

@@ -33,12 +33,16 @@ class Logger:
     @classmethod
     def print(cls, text, head, color=None, background=None, end="\n"):
         Logger.clear()
-        print(colored(f"{head}", color, background), text, end=end)
+        print(colored(f"{head}", color, background), text, end=end, flush=True)
+
+    @classmethod
+    def clear_and_print(cls, text):
+        Logger.clear()
+        print(text, flush=True)
 
 
 def get_table():
     table = Texttable()
-    table.set_max_width(100)
     return table
 
 
@@ -48,11 +52,11 @@ def animate_wait(f):
     def animate():
         for c in itertools.cycle(list("/—\|")):
             if done:
-                sys.stdout.write("\r")
+                Logger.clear()
                 break
-            sys.stdout.write("\rPlease wait " + c)
+
+            print("\rPlease wait " + c, end="", flush=True)
             time.sleep(0.1)
-            sys.stdout.flush()
 
     def wrapper(*args):
         nonlocal done

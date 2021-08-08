@@ -4,26 +4,11 @@ from pathlib import Path
 
 from bs4 import BeautifulSoup
 
-from .constants import (
-    COURSE_DETAILS_API,
-    EXERCISE_DETAILS_API,
-    LANGMAP,
-    LOGIN_DETAILS_URL,
-    LOGIN_URL,
-    PROFILE_URL,
-    PROGRESS_API,
-    VIDEO_DETAILS_API,
-)
-from .helper import (
-    Logger,
-    animate_wait,
-    correct_path,
-    download_file,
-    fix_track_link,
-    get_table,
-    print_progress,
-    save_text,
-)
+from .constants import (COURSE_DETAILS_API, EXERCISE_DETAILS_API, LANGMAP,
+                        LOGIN_DETAILS_URL, LOGIN_URL, PROFILE_URL,
+                        PROGRESS_API, VIDEO_DETAILS_API)
+from .helper import (Logger, animate_wait, correct_path, download_file,
+                     fix_track_link, get_table, print_progress, save_text)
 from .templates.course import Chapter, Course
 from .templates.exercise import Exercise
 from .templates.track import Track
@@ -146,8 +131,10 @@ class Datacamp:
     @animate_wait
     def list_completed_courses(self, refresh):
         table = get_table()
-
+        table.set_cols_width([3, 6, 30, 10, 10, 10])
         table.add_row(["#", "ID", "Title", "Datasets", "Exercises", "Videos"])
+        table_so_far = table.draw()
+        Logger.clear_and_print(table_so_far)
         for i, course in enumerate(self.get_completed_courses(refresh), 1):
             all_exercises_count = sum([c.nb_exercises for c in course.chapters])
             videos_count = sum([c.number_of_videos for c in course.chapters])
@@ -161,8 +148,9 @@ class Datacamp:
                     videos_count,
                 ]
             )
-            Logger.clear()
-            table.draw()
+            table_str = table.draw()
+            Logger.clear_and_print(table_str.replace(table_so_far, "").strip())
+            table_so_far = table_str
 
     @login_required
     def download(self, ids, directory, **kwargs):
@@ -340,7 +328,7 @@ class Datacamp:
         all_courses = set()
         # add courses
         for track in self.tracks:
-            courses = self._get_courses_from_link(fix_track_link(track.link))
+            courses = list(self._get_courses_from_link(fix_track_link(track.link)))
             if not courses:
                 continue
             track.courses = courses
@@ -356,16 +344,21 @@ class Datacamp:
 
     def get_completed_courses(self, refresh=False):
         if self.courses and not refresh:
-            return self.courses
-        self.session.start()
-        self.courses = self._get_courses_from_link(
+            yield from self.courses
+            return
+
+        self.courses = []
+
+        for course in self._get_courses_from_link(
             PROFILE_URL.format(slug=self.login_data["slug"])
-        )
+        ):
+            self.courses.append(course)
+            yield course
+
         if not self.courses:
             return []
 
         self.session.save()
-        return self.courses
 
     def get_course(self, id):
         if id in self.not_found_courses:
@@ -395,15 +388,13 @@ class Datacamp:
         html = self.session.get(link)
         soup = BeautifulSoup(html, "html.parser")
         courses_ids = soup.findAll("article", {"class": re.compile("^js-async")})
-        courses = []
         for id_tag in courses_ids:
             id = id_tag.get("data-id")
             if not id:
                 continue
             course = self.get_course(int(id))
             if course:
-                courses.append(course)
-        return courses
+                yield course
 
     def _get_chapter_name(self, chapter: Chapter):
         if chapter.title and chapter.title_meta:
