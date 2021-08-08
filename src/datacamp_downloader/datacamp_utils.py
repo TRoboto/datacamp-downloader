@@ -1,7 +1,8 @@
-from pathlib import Path
-import sys
-from bs4 import BeautifulSoup
 import re
+import sys
+from pathlib import Path
+
+from bs4 import BeautifulSoup
 
 from .constants import (
     COURSE_DETAILS_API,
@@ -22,9 +23,9 @@ from .helper import (
     print_progress,
     save_text,
 )
-from .templates.track import Track
 from .templates.course import Chapter, Course
 from .templates.exercise import Exercise
+from .templates.track import Track
 from .templates.video import Video
 
 
@@ -56,8 +57,8 @@ def try_except_request(f):
 
         try:
             return f(*args, **kwargs)
-        except Exception:
-            Logger.warning(f"Couldn't run {f.__name__} with inputs {args[1:]}")
+        except Exception as e:
+            Logger.error(e)
         return
 
     return wrapper
@@ -121,6 +122,7 @@ class Datacamp:
         self._set_profile()
 
     @animate_wait
+    @try_except_request
     def set_token(self, token):
         if self.token == token and self.loggedin:
             Logger.info("Already logged in!")
