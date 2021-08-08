@@ -1,13 +1,12 @@
+import os
 from pathlib import Path
 from typing import List, Optional
+
 import typer
 
-from .templates.lang import Language
-
+from . import active_session, datacamp
 from .helper import Logger
-from . import datacamp, active_session
-import os
-
+from .templates.lang import Language
 
 __version__ = "2.1.0"
 
@@ -170,4 +169,4 @@ def download(
 @app.command()
 def reset():
     """Restart the session."""
-    active_session.restart()
+    active_session.reset()

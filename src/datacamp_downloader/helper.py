@@ -1,12 +1,13 @@
-from pathlib import Path
-import sys
-import time
-import threading
 import itertools
 import re
+import sys
+import threading
+import time
+from pathlib import Path
 
-from texttable import Texttable
+import requests
 from termcolor import colored
+from texttable import Texttable
 
 
 class Logger:
@@ -72,9 +73,7 @@ def correct_path(path: str):
     return re.sub("[^-a-zA-Z0-9_.() /]+", "", path)
 
 
-def download_file(
-    session, link: str, path: Path, progress=True, max_retry=10, overwrite=False
-):
+def download_file(link: str, path: Path, progress=True, max_retry=10, overwrite=False):
     # start = time.clock()
     if not overwrite and path.exists():
         Logger.warning(f"{path.absolute()} is already downloaded")
@@ -82,7 +81,7 @@ def download_file(
 
     for i in range(max_retry):
         try:
-            response = session.get(link, stream=True)
+            response = requests.get(link, stream=True)
             i = -1
             break
         except Exception:
