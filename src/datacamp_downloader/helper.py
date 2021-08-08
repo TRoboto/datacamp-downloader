@@ -12,6 +12,7 @@ from texttable import Texttable
 
 class Logger:
     show_warnings = True
+    is_writing = False
 
     @classmethod
     def error(cls, text):
@@ -32,13 +33,17 @@ class Logger:
 
     @classmethod
     def print(cls, text, head, color=None, background=None, end="\n"):
+        cls.is_writing = True
         Logger.clear()
         print(colored(f"{head}", color, background), text, end=end, flush=True)
+        cls.is_writing = False
 
     @classmethod
     def clear_and_print(cls, text):
+        cls.is_writing = True
         Logger.clear()
         print(text, flush=True)
+        cls.is_writing = False
 
 
 def get_table():
@@ -54,8 +59,8 @@ def animate_wait(f):
             if done:
                 Logger.clear()
                 break
-
-            print("\rPlease wait " + c, end="", flush=True)
+            if not Logger.is_writing:
+                print("\rPlease wait " + c, end="", flush=True)
             time.sleep(0.1)
 
     def wrapper(*args):
