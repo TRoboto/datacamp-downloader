@@ -84,6 +84,7 @@ class Datacamp:
             Logger.info("Already logged in!")
             return
 
+        self.session.start()
         self.username = username
         self.password = password
 
@@ -125,6 +126,7 @@ class Datacamp:
             Logger.info("Already logged in!")
             return
 
+        self.session.start()
         self.token = token
         self.session.add_token(token)
         self._set_profile()
@@ -319,6 +321,7 @@ class Datacamp:
         sys.stdout.write("\n")
 
     def get_completed_tracks(self):
+        self.session.start()
         self.tracks = []
         profile = self.session.get(PROFILE_URL.format(slug=self.login_data["slug"]))
         soup = BeautifulSoup(profile, "html.parser")
@@ -353,6 +356,7 @@ class Datacamp:
         return self.tracks
 
     def get_completed_courses(self):
+        self.session.start()
         self.courses = self._get_courses_from_link(
             PROFILE_URL.format(slug=self.login_data["slug"])
         )

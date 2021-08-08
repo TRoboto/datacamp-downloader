@@ -20,9 +20,6 @@ class Session:
     def __init__(self) -> None:
         self.savefile = Path(SESSION_FILE)
         self.datacamp = self.load_datacamp()
-        self.start()
-        if self.datacamp.token:
-            self.add_token(self.datacamp.token)
 
     def save(self):
         self.datacamp.session = None
@@ -43,14 +40,19 @@ class Session:
             pass
 
     def start(self):
+        if hasattr(self, "driver"):
+            return
         self.driver = uc.Chrome(headless=True)
         self.driver.get(HOME_PAGE)
+        if self.datacamp.token:
+            self.add_token(self.datacamp.token)
 
     def bypass_cloudflare(self, url):
         with self.driver:
             self.driver.get(url)
 
     def get(self, url):
+        self.start()
         self.driver.get(url)
         try:
             self.driver.find_element(By.ID, "cf-spinner-allow-5-secs")
