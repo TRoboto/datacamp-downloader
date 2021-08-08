@@ -1,5 +1,6 @@
 import tempfile
 
+HOME_PAGE = "https://www.datacamp.com/"
 LOGIN_URL = "https://www.datacamp.com/users/sign_in"
 LOGIN_DETAILS_URL = "https://www.datacamp.com/api/users/signed_in"
 
