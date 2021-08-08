@@ -4,11 +4,26 @@ from pathlib import Path
 
 from bs4 import BeautifulSoup
 
-from .constants import (COURSE_DETAILS_API, EXERCISE_DETAILS_API, LANGMAP,
-                        LOGIN_DETAILS_URL, LOGIN_URL, PROFILE_URL,
-                        PROGRESS_API, VIDEO_DETAILS_API)
-from .helper import (Logger, animate_wait, correct_path, download_file,
-                     fix_track_link, get_table, print_progress, save_text)
+from .constants import (
+    COURSE_DETAILS_API,
+    EXERCISE_DETAILS_API,
+    LANGMAP,
+    LOGIN_DETAILS_URL,
+    LOGIN_URL,
+    PROFILE_URL,
+    PROGRESS_API,
+    VIDEO_DETAILS_API,
+)
+from .helper import (
+    Logger,
+    animate_wait,
+    correct_path,
+    download_file,
+    fix_track_link,
+    get_table,
+    print_progress,
+    save_text,
+)
 from .templates.course import Chapter, Course
 from .templates.exercise import Exercise
 from .templates.track import Track
@@ -70,7 +85,6 @@ class Datacamp:
             Logger.info("Already logged in!")
             return
 
-        self.session.start()
         self.username = username
         self.password = password
 
@@ -112,7 +126,6 @@ class Datacamp:
             Logger.info("Already logged in!")
             return
 
-        self.session.start()
         self.token = token
         self.session.add_token(token)
         self._set_profile()
@@ -121,17 +134,21 @@ class Datacamp:
     @animate_wait
     def list_completed_tracks(self, refresh):
         table = get_table()
+        table.set_cols_width([3, 6, 40, 10])
         table.add_row(["#", "ID", "Title", "Courses"])
-        for i, track in enumerate(self.get_completed_tracks(), 1):
-            Logger.clear()
+        table_so_far = table.draw()
+        Logger.clear_and_print(table_so_far)
+        for i, track in enumerate(self.get_completed_tracks(refresh), 1):
             table.add_row([i, track.id, track.title, len(track.courses)])
-            table.draw()
+            table_str = table.draw()
+            Logger.clear_and_print(table_str.replace(table_so_far, "").strip())
+            table_so_far = table_str
 
     @login_required
     @animate_wait
     def list_completed_courses(self, refresh):
         table = get_table()
-        table.set_cols_width([3, 6, 30, 10, 10, 10])
+        table.set_cols_width([3, 6, 40, 10, 10, 10])
         table.add_row(["#", "ID", "Title", "Datasets", "Exercises", "Videos"])
         table_so_far = table.draw()
         Logger.clear_and_print(table_so_far)
@@ -307,8 +324,9 @@ class Datacamp:
 
     def get_completed_tracks(self, refresh=False):
         if self.tracks and not refresh:
-            return self.tracks
-        self.session.start()
+            yield from self.tracks
+            return
+
         self.tracks = []
         profile = self.session.get(PROFILE_URL.format(slug=self.login_data["slug"]))
         soup = BeautifulSoup(profile, "html.parser")
@@ -346,7 +364,6 @@ class Datacamp:
         if self.courses and not refresh:
             yield from self.courses
             return
-
         self.courses = []
 
         for course in self._get_courses_from_link(
