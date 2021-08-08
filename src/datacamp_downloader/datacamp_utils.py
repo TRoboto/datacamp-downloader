@@ -87,7 +87,6 @@ class Datacamp:
             Logger.info("Already logged in!")
             return
 
-        self.session.restart()
         self.username = username
         self.password = password
 
@@ -116,9 +115,10 @@ class Datacamp:
             or login_req.status_code != 200
             or "/users/sign_up" in login_req.text
         ):
-            Logger.error("Incorrent username/password")
+            Logger.error("Incorrect username/password")
             return
 
+        self.token = self.session.cookies.get("_dct")
         self._set_profile()
 
     @animate_wait
@@ -128,15 +128,8 @@ class Datacamp:
             Logger.info("Already logged in!")
             return
 
-        self.session.restart()
         self.token = token
-        cookie = {
-            "name": "_dct",
-            "value": token,
-            "domain": ".datacamp.com",
-            "secure": True,
-        }
-        self.session.add_cookie(cookie)
+        self.session.add_token(token)
         self._set_profile()
 
     @login_required
@@ -239,7 +232,6 @@ class Datacamp:
                 print_progress(i, len(course.datasets), f"datasets")
                 if dataset.asset_url:
                     download_file(
-                        self.session,
                         dataset.asset_url,
                         download_path
                         / "datasets"
@@ -252,7 +244,6 @@ class Datacamp:
             cpath = download_path / self._get_chapter_name(chapter)
             if kwargs.get("slides") and chapter.slides_link:
                 download_file(
-                    self.session,
                     chapter.slides_link,
                     cpath / correct_path(chapter.slides_link.split("/")[-1]),
                     overwrite=self.overwrite,
@@ -296,14 +287,12 @@ class Datacamp:
                 video_path = path / "videos" / f"ch{chapter.number}_{video_counter}"
                 if videos and video.video_mp4_link:
                     download_file(
-                        self.session,
                         video.video_mp4_link,
                         video_path.with_suffix(".mp4"),
                         overwrite=self.overwrite,
                     )
                 if audios and video.audio_link:
                     download_file(
-                        self.session,
                         video.audio_link,
                         path / "audios" / f"ch{chapter.number}_{video_counter}.mp3",
                         False,
@@ -311,7 +300,6 @@ class Datacamp:
                     )
                 if scripts and video.script_link:
                     download_file(
-                        self.session,
                         video.script_link,
                         path / "scripts" / (video_path.name + "_script.md"),
                         False,
@@ -336,7 +324,7 @@ class Datacamp:
     def get_completed_tracks(self):
         self.tracks = []
         profile = self.session.get(PROFILE_URL.format(slug=self.login_data["slug"]))
-        soup = BeautifulSoup(profile.text, "html.parser")
+        soup = BeautifulSoup(profile, "html.parser")
         tracks_title = soup.findAll("div", {"class": "track-block__main"})
         tracks_link = soup.findAll(
             "a", {"href": re.compile("^/tracks"), "class": "shim"}
@@ -387,10 +375,9 @@ class Datacamp:
 
     @try_except_request
     def get_exercises_last_attempt(self, course_id, chapter_id):
-        res = self.session.get(
+        data = self.session.get_json(
             PROGRESS_API.format(course_id=course_id, chapter_id=chapter_id)
         )
-        data = res.json()
         if "error" in data:
             raise ValueError("Cannot get info.")
         last_attempt = {e["exercise_id"]: e["last_attempt"] for e in data}
@@ -406,7 +393,7 @@ class Datacamp:
     @try_except_request
     def _get_courses_from_link(self, link: str):
         html = self.session.get(link)
-        soup = BeautifulSoup(html.text, "html.parser")
+        soup = BeautifulSoup(html, "html.parser")
         courses_ids = soup.findAll("article", {"class": re.compile("^js-async")})
         courses = []
         for id_tag in courses_ids:
@@ -428,10 +415,9 @@ class Datacamp:
         return f"chapter-{chapter.number}"
 
     def _set_profile(self):
-        page = self.session.get(LOGIN_DETAILS_URL)
         try:
-            data = page.json()
-        except:
+            data = self.session.get_json(LOGIN_DETAILS_URL)
+        except Exception as e:
             Logger.error("Incorrect input token!")
             return
         Logger.info("Hi, " + (data["first_name"] or data["last_name"] or data["email"]))
@@ -458,19 +444,18 @@ class Datacamp:
     def _get_video(self, id):
         if not id:
             raise ValueError("ID tag not found.")
-        res = self.session.get(VIDEO_DETAILS_API.format(hash=id))
-        if "error" in res.json():
+        res = self.session.get_json(VIDEO_DETAILS_API.format(hash=id))
+        if "error" in res:
             raise ValueError("Cannot get info.")
-        return Video(**res.json())
+        return Video(**res)
 
     @try_except_request
     def _get_exercises_ids(self, course_id, chapter_id):
         if not course_id or not chapter_id:
             raise ValueError("ID tags not found.")
-        res = self.session.get(
+        data = self.session.get_json(
             PROGRESS_API.format(course_id=course_id, chapter_id=chapter_id)
         )
-        data = res.json()
         if "error" in data:
             raise ValueError("Cannot get info.")
         ids = [e["exercise_id"] for e in data]
@@ -480,18 +465,18 @@ class Datacamp:
     def _get_exercise(self, id):
         if not id:
             raise ValueError("ID tag not found.")
-        res = self.session.get(EXERCISE_DETAILS_API.format(id=id))
-        if "error" in res.json():
+        res = self.session.get_json(EXERCISE_DETAILS_API.format(id=id))
+        if "error" in res:
             raise ValueError("Cannot get info.")
-        return Exercise(**res.json())
+        return Exercise(**res)
 
     @try_except_request
     def _get_course(self, id):
         if not id:
             self.not_found_courses.add(id)
             raise ValueError("ID tag not found.")
-        res = self.session.get(COURSE_DETAILS_API.format(id=id))
-        if "error" in res.json():
+        res = self.session.get_json(COURSE_DETAILS_API.format(id=id))
+        if "error" in res:
             self.not_found_courses.add(id)
             raise ValueError("Cannot get info.")
-        return Course(**res.json())
+        return Course(**res)
