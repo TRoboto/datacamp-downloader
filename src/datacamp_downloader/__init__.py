@@ -1,7 +1,9 @@
-from .session import Session
 import copyreg
 import ssl
+
 from colorama import init
+
+from .session import Session
 
 # use Colorama to make Termcolor work on Windows too
 init()
