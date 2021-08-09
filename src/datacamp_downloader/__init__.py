@@ -1,6 +1,3 @@
-import copyreg
-import ssl
-
 from colorama import init
 
 from .session import Session
