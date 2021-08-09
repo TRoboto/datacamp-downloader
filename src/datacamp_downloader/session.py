@@ -46,23 +46,21 @@ class Session:
         options = uc.ChromeOptions()
         options.headless = headless
         # just some options passing in to skip annoying popups
-        options.add_argument(
-            "--no-first-run "
-            "--no-service-autorun "
-            "--password-store=basic "
-            "--disable-extensions "
-            "--disable-browser-side-navigation "
-            "--disable-dev-shm-usage "
-            "--disable-infobars "
-            "--disable-popup-blocking "
-            "--disable-gpu "
-            "--window-position=-10000,-10000 "
-            "--disable-notifications "
-            "--content-shell-hide-toolbar "
-            "--top-controls-hide-threshold "
-            "--force-app-mode "
-            "--hide-scrollbars"
-        )
+        options.add_argument("--no-first-run ")
+        options.add_argument("--no-service-autorun ")
+        options.add_argument("--password-store=basic ")
+        options.add_argument("--disable-extensions ")
+        options.add_argument("--disable-browser-side-navigation ")
+        options.add_argument("--disable-dev-shm-usage ")
+        options.add_argument("--disable-infobars ")
+        options.add_argument("--disable-popup-blocking ")
+        options.add_argument("--disable-gpu ")
+        options.add_argument("--window-position=-10000,10000 ")
+        options.add_argument("--disable-notifications ")
+        options.add_argument("--content-shell-hide-toolbar ")
+        options.add_argument("--top-controls-hide-threshold ")
+        options.add_argument("--force-app-mode ")
+        options.add_argument("--hide-scrollbars")
         self.driver = uc.Chrome(options=options)
         # self.driver.minimize_window()
 
