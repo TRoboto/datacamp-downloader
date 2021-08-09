@@ -67,6 +67,9 @@ class Datacamp:
     def __init__(self, session: "session.Session") -> None:
 
         self.session = session
+        self.init()
+
+    def init(self):
         self.username = None
         self.password = None
         self.token = None
@@ -86,6 +89,7 @@ class Datacamp:
             Logger.info("Already logged in!")
             return
 
+        self.init()
         self.session.start(headless=False)
 
         self.username = username
@@ -133,6 +137,7 @@ class Datacamp:
             Logger.info("Already logged in!")
             return
 
+        self.init()
         self.session.start(headless=False)
 
         self.token = token
