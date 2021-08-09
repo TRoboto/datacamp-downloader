@@ -92,7 +92,6 @@ class Datacamp:
             return
 
         self.init()
-        self.session.start(headless=False)
 
         self.username = username
         self.password = password
@@ -140,7 +139,7 @@ class Datacamp:
             return
 
         self.init()
-        self.session.start(headless=False)
+        self.session.start()
 
         self.token = token
         self.session.add_token(token)
@@ -203,6 +202,9 @@ class Datacamp:
         to_download = [i for i in to_download if i]
 
         path = Path(directory) if not isinstance(directory, Path) else directory
+
+        self.session.start()
+        self.session.driver.minimize_window()
 
         for i, material in enumerate(to_download, 1):
             if not material:
@@ -343,7 +345,6 @@ class Datacamp:
             yield from self.tracks
             return
 
-        self.session.start(headless=False)
         self.tracks = []
 
         profile = self.session.get(PROFILE_URL.format(slug=self.login_data["slug"]))
@@ -385,7 +386,6 @@ class Datacamp:
             yield from self.courses
             return
 
-        self.session.start(headless=False)
         self.courses = []
 
         for course in self._get_courses_from_link(

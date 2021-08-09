@@ -64,7 +64,7 @@ class Session:
         self.driver = uc.Chrome(options=options)
         # self.driver.minimize_window()
 
-    def start(self, headless=True):
+    def start(self, headless=False):
         if hasattr(self, "driver"):
             return
         self._setup_driver(headless)
