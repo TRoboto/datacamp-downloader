@@ -343,8 +343,12 @@ class Datacamp:
             yield from self.tracks
             return
 
+        self.session.start(headless=False)
         self.tracks = []
+
         profile = self.session.get(PROFILE_URL.format(slug=self.login_data["slug"]))
+        self.session.driver.minimize_window()
+
         soup = BeautifulSoup(profile, "html.parser")
         tracks_title = soup.findAll("div", {"class": "track-block__main"})
         tracks_link = soup.findAll(
@@ -380,6 +384,8 @@ class Datacamp:
         if self.courses and not refresh:
             yield from self.courses
             return
+
+        self.session.start(headless=False)
         self.courses = []
 
         for course in self._get_courses_from_link(
@@ -421,6 +427,8 @@ class Datacamp:
     @try_except_request
     def _get_courses_from_link(self, link: str):
         html = self.session.get(link)
+        self.session.driver.minimize_window()
+
         soup = BeautifulSoup(html, "html.parser")
         courses_ids = soup.findAll("article", {"class": re.compile("^js-async")})
         for id_tag in courses_ids:
