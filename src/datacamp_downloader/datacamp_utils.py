@@ -2,6 +2,7 @@ import re
 import sys
 from pathlib import Path
 
+import src.datacamp_downloader.session as session
 from bs4 import BeautifulSoup
 
 from .constants import (
@@ -63,7 +64,7 @@ def try_except_request(f):
 
 
 class Datacamp:
-    def __init__(self, session) -> None:
+    def __init__(self, session: "session.Session") -> None:
 
         self.session = session
         self.username = None
@@ -85,38 +86,44 @@ class Datacamp:
             Logger.info("Already logged in!")
             return
 
+        self.session.start(headless=False)
+
         self.username = username
         self.password = password
 
         req = self.session.get(LOGIN_URL)
-        if not req or req.status_code != 200 or not req.text:
+        if not req:
             Logger.error("Cannot access datacamp website!")
             return
-        soup = BeautifulSoup(req.text, "html.parser")
-        authenticity_token = soup.find("input", {"name": "authenticity_token"}).get(
-            "value"
+        self.session.wait_for_element_by_css_selector("#user_email")
+        email = self.session.get_element_by_id("user_email")
+        email.send_keys(username)
+        # click remember me
+        # self.session.click_element("remember_me_modal")
+        next_button = self.session.get_element_by_xpath('//button[@tabindex="2"]')
+        next_button.click()
+
+        # self.session.wait_for_element("user_password")
+        self.session.wait_for_element_by_css_selector(
+            "#user_password", "#flash_messages"
         )
-        if not authenticity_token:
-            Logger.error("Cannot find authenticity_token attribute!")
+        password_field = self.session.get_element_by_id("user_password")
+        try:
+            password_field.send_keys(password)
+        except Exception:
+            Logger.error("Incorrect email!")
             return
 
-        login_req = self.session.post(
-            LOGIN_URL,
-            params=[
-                ("authenticity_token", authenticity_token),
-                ("user[email]", username),
-                ("user[password]", password),
-            ],
-        )
-        if (
-            not login_req
-            or login_req.status_code != 200
-            or "/users/sign_up" in login_req.text
-        ):
-            Logger.error("Incorrect username/password")
+        submit_button = self.session.get_element_by_xpath('//input[@tabindex="4"]')
+        submit_button.click()
+        self.session.wait_for_element_by_css_selector("#__next", "#flash_messages")
+
+        page = self.session.driver.page_source
+        if not page or "/users/sign_up" in page:
+            Logger.error("Incorrect password")
             return
 
-        self.token = self.session.cookies.get("_dct")
+        self.token = self.session.driver.get_cookie("_dct")["value"]
         self._set_profile()
 
     @animate_wait
@@ -125,6 +132,8 @@ class Datacamp:
         if self.token == token and self.loggedin:
             Logger.info("Already logged in!")
             return
+
+        self.session.start(headless=False)
 
         self.token = token
         self.session.add_token(token)

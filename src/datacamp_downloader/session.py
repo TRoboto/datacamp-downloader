@@ -6,6 +6,9 @@ from pathlib import Path
 # import chromedriver_autoinstaller
 import undetected_chromedriver.v2 as uc
 from selenium.webdriver.common.by import By
+from selenium.webdriver.remote.webelement import WebElement
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 from .constants import HOME_PAGE, SESSION_FILE
 from .datacamp_utils import Datacamp
@@ -39,10 +42,34 @@ class Session:
         except:
             pass
 
-    def start(self):
+    def _setup_driver(self, headless=True):
+        options = uc.ChromeOptions()
+        options.headless = headless
+        # just some options passing in to skip annoying popups
+        options.add_argument(
+            "--no-first-run "
+            "--no-service-autorun "
+            "--password-store=basic "
+            "--disable-extensions "
+            "--disable-browser-side-navigation "
+            "--disable-dev-shm-usage "
+            "--disable-infobars "
+            "--disable-popup-blocking "
+            "--disable-gpu "
+            "--window-position=-10000,-10000 "
+            "--disable-notifications "
+            "--content-shell-hide-toolbar "
+            "--top-controls-hide-threshold "
+            "--force-app-mode "
+            "--hide-scrollbars"
+        )
+        self.driver = uc.Chrome(options=options)
+        # self.driver.minimize_window()
+
+    def start(self, headless=True):
         if hasattr(self, "driver"):
             return
-        self.driver = uc.Chrome(headless=True)
+        self._setup_driver(headless)
         self.driver.get(HOME_PAGE)
         self.bypass_cloudflare(HOME_PAGE)
         if self.datacamp.token:
@@ -50,7 +77,7 @@ class Session:
 
     def bypass_cloudflare(self, url):
         try:
-            self.driver.find_element(By.ID, "cf-spinner-allow-5-secs")
+            self.get_element_by_id("cf-spinner-allow-5-secs")
             with self.driver:
                 self.driver.get(url)
         except:
@@ -68,8 +95,19 @@ class Session:
         parsed_json = json.loads(page)
         return parsed_json
 
-    def post(self, *args, **kwargs):
-        return self.session.post(*args, **kwargs)
+    def get_element_by_id(self, id: str) -> WebElement:
+        return self.driver.find_element(By.ID, id)
+
+    def get_element_by_xpath(self, xpath: str) -> WebElement:
+        return self.driver.find_element(By.XPATH, xpath)
+
+    def click_element(self, id: str):
+        self.get_element_by_id(id).click()
+
+    def wait_for_element_by_css_selector(self, *css: str, timeout: int = 10):
+        WebDriverWait(self.driver, timeout).until(
+            EC.visibility_of_any_elements_located((By.CSS_SELECTOR, ",".join(css)))
+        )
 
     def add_token(self, token: str):
         cookie = {
