@@ -2,8 +2,9 @@ import re
 import sys
 from pathlib import Path
 
-import src.datacamp_downloader.session as session
 from bs4 import BeautifulSoup
+
+import datacamp_downloader.session as session
 
 from .constants import (
     COURSE_DETAILS_API,
