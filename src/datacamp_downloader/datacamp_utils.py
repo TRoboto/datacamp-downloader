@@ -58,7 +58,8 @@ def try_except_request(f):
         try:
             return f(*args, **kwargs)
         except Exception as e:
-            Logger.error(e)
+            if str(e):
+                Logger.error(e)
         return
 
     return wrapper
@@ -406,7 +407,9 @@ class Datacamp:
             PROGRESS_API.format(course_id=course_id, chapter_id=chapter_id)
         )
         if "error" in data:
-            raise ValueError("Cannot get info.")
+            raise ValueError(
+                f"Cannot get exercises for course {course_id}, chapter {chapter_id}."
+            )
         last_attempt = {e["exercise_id"]: e["last_attempt"] for e in data}
         return last_attempt
 
@@ -469,7 +472,7 @@ class Datacamp:
             raise ValueError("ID tag not found.")
         res = self.session.get_json(VIDEO_DETAILS_API.format(hash=id))
         if "error" in res:
-            raise ValueError("Cannot get info.")
+            raise ValueError()
         return Video(**res)
 
     @try_except_request
@@ -480,7 +483,9 @@ class Datacamp:
             PROGRESS_API.format(course_id=course_id, chapter_id=chapter_id)
         )
         if "error" in data:
-            raise ValueError("Cannot get info.")
+            raise ValueError(
+                f"Cannot get exercises for course {course_id}, chapter {chapter_id}."
+            )
         ids = [e["exercise_id"] for e in data]
         return ids
 
@@ -490,7 +495,7 @@ class Datacamp:
             raise ValueError("ID tag not found.")
         res = self.session.get_json(EXERCISE_DETAILS_API.format(id=id))
         if "error" in res:
-            raise ValueError("Cannot get info.")
+            raise ValueError(f"Cannot get exercise with id: {id}.")
         return Exercise(**res)
 
     @try_except_request
@@ -501,5 +506,5 @@ class Datacamp:
         res = self.session.get_json(COURSE_DETAILS_API.format(id=id))
         if "error" in res:
             self.not_found_courses.add(id)
-            raise ValueError("Cannot get info.")
+            raise ValueError(f"Cannot get course with id: {id}.")
         return Course(**res)
