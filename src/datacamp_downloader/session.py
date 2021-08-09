@@ -55,7 +55,7 @@ class Session:
         options.add_argument("--disable-infobars ")
         options.add_argument("--disable-popup-blocking ")
         options.add_argument("--disable-gpu ")
-        options.add_argument("--window-position=-10000,10000 ")
+        # options.add_argument("--window-position=-10000,10000 ")
         options.add_argument("--disable-notifications ")
         options.add_argument("--content-shell-hide-toolbar ")
         options.add_argument("--top-controls-hide-threshold ")
