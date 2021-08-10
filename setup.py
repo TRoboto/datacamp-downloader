@@ -1,4 +1,4 @@
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
@@ -8,7 +8,7 @@ with open("requirements.txt", "r", encoding="utf-8") as fh:
 
 setup(
     name="datacamp-downloader",
-    version="2.2",
+    version="3.0",
     author="Mohammad Al-Fetyani",
     author_email="m4bh@hotmail.com",
     description="Download your completed courses on Datacamp easily!",

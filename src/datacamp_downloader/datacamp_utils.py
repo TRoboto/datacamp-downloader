@@ -1,7 +1,10 @@
-from pathlib import Path
-import sys
-from bs4 import BeautifulSoup
 import re
+import sys
+from pathlib import Path
+
+from bs4 import BeautifulSoup
+
+import datacamp_downloader.session as session
 
 from .constants import (
     COURSE_DETAILS_API,
@@ -19,12 +22,13 @@ from .helper import (
     correct_path,
     download_file,
     fix_track_link,
+    get_table,
     print_progress,
     save_text,
 )
-from .templates.track import Track
 from .templates.course import Chapter, Course
 from .templates.exercise import Exercise
+from .templates.track import Track
 from .templates.video import Video
 
 
@@ -36,9 +40,6 @@ def login_required(f):
             return
         if not self.loggedin:
             Logger.error("Login first!")
-            return
-        if not self.has_active_subscription:
-            Logger.error("No active subscription found.")
             return
         return f(*args, **kwargs)
 
@@ -56,17 +57,21 @@ def try_except_request(f):
 
         try:
             return f(*args, **kwargs)
-        except Exception:
-            Logger.warning(f"Couldn't run {f.__name__} with inputs {args[1:]}")
+        except Exception as e:
+            if str(e):
+                Logger.error(e)
         return
 
     return wrapper
 
 
 class Datacamp:
-    def __init__(self, session) -> None:
+    def __init__(self, session: "session.Session") -> None:
 
         self.session = session
+        self.init()
+
+    def init(self):
         self.username = None
         self.password = None
         self.token = None
@@ -86,110 +91,139 @@ class Datacamp:
             Logger.info("Already logged in!")
             return
 
-        self.session.restart()
+        self.init()
+
         self.username = username
         self.password = password
 
         req = self.session.get(LOGIN_URL)
-        if not req or req.status_code != 200 or not req.text:
+        if not req:
             Logger.error("Cannot access datacamp website!")
             return
-        soup = BeautifulSoup(req.text, "html.parser")
-        authenticity_token = soup.find("input", {"name": "authenticity_token"}).get(
-            "value"
+        self.session.wait_for_element_by_css_selector("#user_email")
+        email = self.session.get_element_by_id("user_email")
+        email.send_keys(username)
+        # click remember me
+        # self.session.click_element("remember_me_modal")
+        next_button = self.session.get_element_by_xpath('//button[@tabindex="2"]')
+        next_button.click()
+
+        # self.session.wait_for_element("user_password")
+        self.session.wait_for_element_by_css_selector(
+            "#user_password", "#flash_messages"
         )
-        if not authenticity_token:
-            Logger.error("Cannot find authenticity_token attribute!")
+        password_field = self.session.get_element_by_id("user_password")
+        try:
+            password_field.send_keys(password)
+        except Exception:
+            Logger.error("Incorrect email!")
             return
 
-        login_req = self.session.post(
-            LOGIN_URL,
-            params=[
-                ("authenticity_token", authenticity_token),
-                ("user[email]", username),
-                ("user[password]", password),
-            ],
-        )
-        if (
-            not login_req
-            or login_req.status_code != 200
-            or "/users/sign_up" in login_req.text
-        ):
-            Logger.error("Incorrent username/password")
+        submit_button = self.session.get_element_by_xpath('//input[@tabindex="4"]')
+        submit_button.click()
+        self.session.wait_for_element_by_css_selector("#__next", "#flash_messages")
+
+        page = self.session.driver.page_source
+        if not page or "/users/sign_up" in page:
+            Logger.error("Incorrect password")
             return
 
+        self.token = self.session.driver.get_cookie("_dct")["value"]
         self._set_profile()
 
     @animate_wait
+    @try_except_request
     def set_token(self, token):
         if self.token == token and self.loggedin:
             Logger.info("Already logged in!")
             return
 
-        self.session.restart()
+        self.init()
+        self.session.start()
+
         self.token = token
-        cookie = {
-            "name": "_dct",
-            "value": token,
-            "domain": ".datacamp.com",
-            "secure": True,
-        }
-        self.session.add_cookie(cookie)
+        self.session.add_token(token)
         self._set_profile()
 
     @login_required
     @animate_wait
     def list_completed_tracks(self, refresh):
-        if refresh or not self.tracks:
-            self.get_completed_tracks()
-        rows = [["#", "ID", "Title", "Courses"]]
-        for i, track in enumerate(self.tracks, 1):
-            rows.append([i, track.id, track.title, len(track.courses)])
-        Logger.print_table(rows)
+        table = get_table()
+        table.set_cols_width([6, 40, 10])
+        table.add_row(["ID", "Title", "Courses"])
+        table_so_far = table.draw()
+        Logger.clear_and_print(table_so_far)
+        for track in self.get_completed_tracks(refresh):
+            table.add_row([track.id, track.title, len(track.courses)])
+            table_str = table.draw()
+            Logger.clear_and_print(table_str.replace(table_so_far, "").strip())
+            table_so_far = table_str
 
     @login_required
     @animate_wait
     def list_completed_courses(self, refresh):
-        if refresh or not self.courses:
-            self.get_completed_courses()
-        rows = [["#", "ID", "Title", "Datasets", "Exercises", "Videos"]]
-        for i, course in enumerate(self.courses, 1):
+        table = get_table()
+        table.set_cols_width([6, 40, 10, 10, 10])
+        table.add_row(["ID", "Title", "Datasets", "Exercises", "Videos"])
+        table_so_far = table.draw()
+        Logger.clear_and_print(table_so_far)
+        for course in self.get_completed_courses(refresh):
             all_exercises_count = sum([c.nb_exercises for c in course.chapters])
             videos_count = sum([c.number_of_videos for c in course.chapters])
-            rows.append(
+            table.add_row(
                 [
-                    i,
-                    course.id,
+                    course.order,
                     course.title,
                     len(course.datasets),
                     all_exercises_count - videos_count,
                     videos_count,
                 ]
             )
-        Logger.print_table(rows)
+            table_str = table.draw()
+            Logger.clear_and_print(table_str.replace(table_so_far, "").strip())
+            table_so_far = table_str
 
     @login_required
     def download(self, ids, directory, **kwargs):
         self.overwrite = kwargs.get("overwrite")
         if "all-t" in ids:
             if not self.tracks:
-                animate_wait(self.get_completed_tracks)()
+                Logger.error(
+                    "No tracks to download! Maybe run `datacamp tracks` first!"
+                )
+                return
             to_download = self.tracks
         elif "all" in ids:
             if not self.courses:
-                animate_wait(self.get_completed_courses)()
+                Logger.error(
+                    "No courses to download! Maybe run `datacamp courses` first!"
+                )
+                return
             to_download = self.courses
         else:
             to_download = []
             for id in ids:
                 if "t" in id:
-                    to_download.append(animate_wait(self.get_track)(id))
+                    track = self.get_track(id)
+                    if not track:
+                        Logger.warning(f"Track {id} is not fetched. Ignoring it.")
+                        continue
+                    to_download.append(track)
                 elif id.isnumeric():
-                    to_download.append(animate_wait(self.get_course)(id))
-        # filter none
-        to_download = [i for i in to_download if i]
+                    course = self.get_course_by_order(int(id))
+                    if not course:
+                        Logger.warning(f"Course {id} is not fetched. Ignoring it.")
+                        continue
+                    to_download.append(course)
+
+        if not to_download:
+            Logger.error("No courses/tracks to download!")
+            return
 
         path = Path(directory) if not isinstance(directory, Path) else directory
+
+        self.session.start()
+        self.session.driver.minimize_window()
 
         for i, material in enumerate(to_download, 1):
             if not material:
@@ -237,7 +271,6 @@ class Datacamp:
                 print_progress(i, len(course.datasets), f"datasets")
                 if dataset.asset_url:
                     download_file(
-                        self.session,
                         dataset.asset_url,
                         download_path
                         / "datasets"
@@ -250,7 +283,6 @@ class Datacamp:
             cpath = download_path / self._get_chapter_name(chapter)
             if kwargs.get("slides") and chapter.slides_link:
                 download_file(
-                    self.session,
                     chapter.slides_link,
                     cpath / correct_path(chapter.slides_link.split("/")[-1]),
                     overwrite=self.overwrite,
@@ -294,14 +326,12 @@ class Datacamp:
                 video_path = path / "videos" / f"ch{chapter.number}_{video_counter}"
                 if videos and video.video_mp4_link:
                     download_file(
-                        self.session,
                         video.video_mp4_link,
                         video_path.with_suffix(".mp4"),
                         overwrite=self.overwrite,
                     )
                 if audios and video.audio_link:
                     download_file(
-                        self.session,
                         video.audio_link,
                         path / "audios" / f"ch{chapter.number}_{video_counter}.mp3",
                         False,
@@ -309,7 +339,6 @@ class Datacamp:
                     )
                 if scripts and video.script_link:
                     download_file(
-                        self.session,
                         video.script_link,
                         path / "scripts" / (video_path.name + "_script.md"),
                         False,
@@ -321,7 +350,6 @@ class Datacamp:
                         if not subtitle:
                             continue
                         download_file(
-                            self.session,
                             subtitle.link,
                             video_path.parent / (video_path.name + f"_{sub}.vtt"),
                             False,
@@ -331,10 +359,17 @@ class Datacamp:
             print_progress(i, len(ids), f"chapter {chapter.number}")
         sys.stdout.write("\n")
 
-    def get_completed_tracks(self):
+    def get_completed_tracks(self, refresh=False):
+        if self.tracks and not refresh:
+            yield from self.tracks
+            return
+
         self.tracks = []
+
         profile = self.session.get(PROFILE_URL.format(slug=self.login_data["slug"]))
-        soup = BeautifulSoup(profile.text, "html.parser")
+        self.session.driver.minimize_window()
+
+        soup = BeautifulSoup(profile, "html.parser")
         tracks_title = soup.findAll("div", {"class": "track-block__main"})
         tracks_link = soup.findAll(
             "a", {"href": re.compile("^/tracks"), "class": "shim"}
@@ -351,11 +386,12 @@ class Datacamp:
         all_courses = set()
         # add courses
         for track in self.tracks:
-            courses = self._get_courses_from_link(fix_track_link(track.link))
+            courses = list(self._get_courses_from_link(fix_track_link(track.link)))
             if not courses:
                 continue
             track.courses = courses
             all_courses.update(track.courses)
+            yield track
         # add to courses
         current_ids = [c.id for c in self.courses]
         for course in all_courses:
@@ -363,17 +399,24 @@ class Datacamp:
                 self.courses.append(course)
 
         self.session.save()
-        return self.tracks
 
-    def get_completed_courses(self):
-        self.courses = self._get_courses_from_link(
+    def get_completed_courses(self, refresh=False):
+        if self.courses and not refresh:
+            yield from self.courses
+            return
+
+        self.courses = []
+
+        for course in self._get_courses_from_link(
             PROFILE_URL.format(slug=self.login_data["slug"])
-        )
+        ):
+            self.courses.append(course)
+            yield course
+
         if not self.courses:
             return []
 
         self.session.save()
-        return self.courses
 
     def get_course(self, id):
         if id in self.not_found_courses:
@@ -383,20 +426,24 @@ class Datacamp:
                 return course
         return self._get_course(id)
 
+    def get_course_by_order(self, order):
+        for course in self.courses:
+            if course.order == order and course.id not in self.not_found_courses:
+                return course
+
     @try_except_request
     def get_exercises_last_attempt(self, course_id, chapter_id):
-        res = self.session.get(
+        data = self.session.get_json(
             PROGRESS_API.format(course_id=course_id, chapter_id=chapter_id)
         )
-        data = res.json()
         if "error" in data:
-            raise ValueError("Cannot get info.")
+            raise ValueError(
+                f"Cannot get exercises for course {course_id}, chapter {chapter_id}."
+            )
         last_attempt = {e["exercise_id"]: e["last_attempt"] for e in data}
         return last_attempt
 
     def get_track(self, id):
-        if not self.tracks:
-            self.get_completed_tracks()
         for track in self.tracks:
             if track.id == id:
                 return track
@@ -404,17 +451,18 @@ class Datacamp:
     @try_except_request
     def _get_courses_from_link(self, link: str):
         html = self.session.get(link)
-        soup = BeautifulSoup(html.text, "html.parser")
+        self.session.driver.minimize_window()
+
+        soup = BeautifulSoup(html, "html.parser")
         courses_ids = soup.findAll("article", {"class": re.compile("^js-async")})
-        courses = []
-        for id_tag in courses_ids:
+        for i, id_tag in enumerate(courses_ids, 1):
             id = id_tag.get("data-id")
             if not id:
                 continue
             course = self.get_course(int(id))
             if course:
-                courses.append(course)
-        return courses
+                course.order = i
+                yield course
 
     def _get_chapter_name(self, chapter: Chapter):
         if chapter.title and chapter.title_meta:
@@ -426,10 +474,9 @@ class Datacamp:
         return f"chapter-{chapter.number}"
 
     def _set_profile(self):
-        page = self.session.get(LOGIN_DETAILS_URL)
         try:
-            data = page.json()
-        except:
+            data = self.session.get_json(LOGIN_DETAILS_URL)
+        except Exception as e:
             Logger.error("Incorrect input token!")
             return
         Logger.info("Hi, " + (data["first_name"] or data["last_name"] or data["email"]))
@@ -456,21 +503,22 @@ class Datacamp:
     def _get_video(self, id):
         if not id:
             raise ValueError("ID tag not found.")
-        res = self.session.get(VIDEO_DETAILS_API.format(hash=id))
-        if "error" in res.json():
-            raise ValueError("Cannot get info.")
-        return Video(**res.json())
+        res = self.session.get_json(VIDEO_DETAILS_API.format(hash=id))
+        if "error" in res:
+            raise ValueError()
+        return Video(**res)
 
     @try_except_request
     def _get_exercises_ids(self, course_id, chapter_id):
         if not course_id or not chapter_id:
             raise ValueError("ID tags not found.")
-        res = self.session.get(
+        data = self.session.get_json(
             PROGRESS_API.format(course_id=course_id, chapter_id=chapter_id)
         )
-        data = res.json()
         if "error" in data:
-            raise ValueError("Cannot get info.")
+            raise ValueError(
+                f"Cannot get exercises for course {course_id}, chapter {chapter_id}."
+            )
         ids = [e["exercise_id"] for e in data]
         return ids
 
@@ -478,18 +526,18 @@ class Datacamp:
     def _get_exercise(self, id):
         if not id:
             raise ValueError("ID tag not found.")
-        res = self.session.get(EXERCISE_DETAILS_API.format(id=id))
-        if "error" in res.json():
-            raise ValueError("Cannot get info.")
-        return Exercise(**res.json())
+        res = self.session.get_json(EXERCISE_DETAILS_API.format(id=id))
+        if "error" in res:
+            raise ValueError(f"Cannot get exercise with id: {id}.")
+        return Exercise(**res)
 
     @try_except_request
     def _get_course(self, id):
         if not id:
             self.not_found_courses.add(id)
             raise ValueError("ID tag not found.")
-        res = self.session.get(COURSE_DETAILS_API.format(id=id))
-        if "error" in res.json():
+        res = self.session.get_json(COURSE_DETAILS_API.format(id=id))
+        if "error" in res:
             self.not_found_courses.add(id)
-            raise ValueError("Cannot get info.")
-        return Course(**res.json())
+            raise ValueError()
+        return Course(**res)

@@ -1,4 +1,5 @@
 from typing import List
+
 from .course import Course
 
 
