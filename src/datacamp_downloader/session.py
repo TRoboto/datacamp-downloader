@@ -3,7 +3,6 @@ import os
 import pickle
 from pathlib import Path
 
-# import chromedriver_autoinstaller
 import undetected_chromedriver.v2 as uc
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
@@ -12,11 +11,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 from .constants import HOME_PAGE, SESSION_FILE
 from .datacamp_utils import Datacamp
-
-# Check if the current version of chromedriver exists
-# and if it doesn't exist, download it automatically,
-# then add chromedriver to path
-# chromedriver_autoinstaller.install()
 
 
 class Session:
@@ -62,7 +56,6 @@ class Session:
         options.add_argument("--force-app-mode ")
         options.add_argument("--hide-scrollbars")
         self.driver = uc.Chrome(options=options)
-        # self.driver.minimize_window()
 
     def start(self, headless=False):
         if hasattr(self, "driver"):
