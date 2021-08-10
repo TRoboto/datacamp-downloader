@@ -538,5 +538,5 @@ class Datacamp:
         res = self.session.get_json(COURSE_DETAILS_API.format(id=id))
         if "error" in res:
             self.not_found_courses.add(id)
-            raise ValueError(f"Cannot get course with id: {id}.")
+            raise ValueError()
         return Course(**res)
