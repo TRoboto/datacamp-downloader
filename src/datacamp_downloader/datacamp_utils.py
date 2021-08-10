@@ -210,14 +210,15 @@ class Datacamp:
                         continue
                     to_download.append(track)
                 elif id.isnumeric():
-                    course = self.get_course_by_order(id)
+                    course = self.get_course_by_order(int(id))
                     if not course:
-                        Logger.warning(f"Track {id} is not fetched. Ignoring it.")
+                        Logger.warning(f"Course {id} is not fetched. Ignoring it.")
                         continue
                     to_download.append(course)
 
         if not to_download:
             Logger.error("No courses/tracks to download!")
+            return
 
         path = Path(directory) if not isinstance(directory, Path) else directory
 
