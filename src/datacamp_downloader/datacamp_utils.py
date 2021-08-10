@@ -149,12 +149,12 @@ class Datacamp:
     @animate_wait
     def list_completed_tracks(self, refresh):
         table = get_table()
-        table.set_cols_width([3, 6, 40, 10])
-        table.add_row(["#", "ID", "Title", "Courses"])
+        table.set_cols_width([6, 40, 10])
+        table.add_row(["ID", "Title", "Courses"])
         table_so_far = table.draw()
         Logger.clear_and_print(table_so_far)
-        for i, track in enumerate(self.get_completed_tracks(refresh), 1):
-            table.add_row([i, track.id, track.title, len(track.courses)])
+        for track in self.get_completed_tracks(refresh):
+            table.add_row([track.id, track.title, len(track.courses)])
             table_str = table.draw()
             Logger.clear_and_print(table_str.replace(table_so_far, "").strip())
             table_so_far = table_str
@@ -163,17 +163,16 @@ class Datacamp:
     @animate_wait
     def list_completed_courses(self, refresh):
         table = get_table()
-        table.set_cols_width([3, 6, 40, 10, 10, 10])
-        table.add_row(["#", "ID", "Title", "Datasets", "Exercises", "Videos"])
+        table.set_cols_width([6, 40, 10, 10, 10])
+        table.add_row(["ID", "Title", "Datasets", "Exercises", "Videos"])
         table_so_far = table.draw()
         Logger.clear_and_print(table_so_far)
-        for i, course in enumerate(self.get_completed_courses(refresh), 1):
+        for course in self.get_completed_courses(refresh):
             all_exercises_count = sum([c.nb_exercises for c in course.chapters])
             videos_count = sum([c.number_of_videos for c in course.chapters])
             table.add_row(
                 [
-                    i,
-                    course.id,
+                    course.order,
                     course.title,
                     len(course.datasets),
                     all_exercises_count - videos_count,
@@ -188,18 +187,37 @@ class Datacamp:
     def download(self, ids, directory, **kwargs):
         self.overwrite = kwargs.get("overwrite")
         if "all-t" in ids:
-            to_download = list(animate_wait(self.get_completed_tracks)())
+            if not self.tracks:
+                Logger.error(
+                    "No tracks to download! Maybe run `datacamp tracks` first!"
+                )
+                return
+            to_download = self.tracks
         elif "all" in ids:
-            to_download = list(animate_wait(self.get_completed_courses)())
+            if not self.courses:
+                Logger.error(
+                    "No courses to download! Maybe run `datacamp courses` first!"
+                )
+                return
+            to_download = self.courses
         else:
             to_download = []
             for id in ids:
                 if "t" in id:
-                    to_download.append(animate_wait(self.get_track)(id))
+                    track = self.get_track(id)
+                    if not track:
+                        Logger.warning(f"Track {id} is not fetched. Ignoring it.")
+                        continue
+                    to_download.append(track)
                 elif id.isnumeric():
-                    to_download.append(animate_wait(self.get_course)(id))
-        # filter none
-        to_download = [i for i in to_download if i]
+                    course = self.get_course_by_order(id)
+                    if not course:
+                        Logger.warning(f"Track {id} is not fetched. Ignoring it.")
+                        continue
+                    to_download.append(course)
+
+        if not to_download:
+            Logger.error("No courses/tracks to download!")
 
         path = Path(directory) if not isinstance(directory, Path) else directory
 
@@ -407,6 +425,11 @@ class Datacamp:
                 return course
         return self._get_course(id)
 
+    def get_course_by_order(self, order):
+        for course in self.courses:
+            if course.order == order and course.id not in self.not_found_courses:
+                return course
+
     @try_except_request
     def get_exercises_last_attempt(self, course_id, chapter_id):
         data = self.session.get_json(
@@ -431,11 +454,12 @@ class Datacamp:
 
         soup = BeautifulSoup(html, "html.parser")
         courses_ids = soup.findAll("article", {"class": re.compile("^js-async")})
-        for id_tag in courses_ids:
+        for i, id_tag in enumerate(courses_ids, 1):
             id = id_tag.get("data-id")
             if not id:
                 continue
             course = self.get_course(int(id))
+            course.order = i
             if course:
                 yield course
 
