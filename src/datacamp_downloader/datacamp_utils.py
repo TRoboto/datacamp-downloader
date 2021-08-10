@@ -459,8 +459,8 @@ class Datacamp:
             if not id:
                 continue
             course = self.get_course(int(id))
-            course.order = i
             if course:
+                course.order = i
                 yield course
 
     def _get_chapter_name(self, chapter: Chapter):
