@@ -25,6 +25,10 @@
   - [User Privacy](#user-privacy)
   - [Disclaimer](#disclaimer)
 
+## Update
+
+Datacamp Downloader V3.0 is now available. The major change is that the tool now uses selenium for the backend. See changelog [here](https://github.com/TRoboto/datacamp-downloader/pull/39).
+
 ## Description
 
 Datacamp Downloader is a command-line interface tool developed in Python
@@ -47,6 +51,12 @@ If you use pip, you can install datacamp-downloader with:
 
 ```
 pip install datacamp-downloader
+```
+
+If you want to install the previous version that doesn't use `selenium`, run:
+
+```
+pip install datacamp-downloader==2.2
 ```
 
 ### From source
@@ -74,14 +84,6 @@ Then restart the terminal.
 The available commands with full documentation can be found in [docs](https://github.com/TRoboto/datacamp-downloader/blob/master/docs.md)
 
 ## Getting Started
-
----
-
-**IMPORTANT**
-
-You must have a Datacamp account with **active** subscription to use the tool.
-
----
 
 ### Login
 
@@ -135,6 +137,8 @@ Hi, YOUR_NAME
 Active subscription found
 ```
 
+> Active subscription is not required anymore.
+
 ### Download
 
 First, you should list your completed courses/track.
@@ -154,29 +158,29 @@ datacamp tracks
 Similar output to this should appear with your completed courses/tracks:
 
 ```
-+----+-------+-----------------------------------------------------+----------+-----------+--------+
-| #  |  ID   |                        Title                        | Datasets | Exercises | Videos |
-+====+=======+=====================================================+==========+===========+========+
-| 1  | 799   | Intermediate Python                                 | 3        | 69        | 18     |
-+----+-------+-----------------------------------------------------+----------+-----------+--------+
-| 2  | 15876 | Writing Functions in Python                         | 0        | 31        | 15     |
-+----+-------+-----------------------------------------------------+----------+-----------+--------+
-| 3  | 14630 | Writing Efficient Code with pandas                  | 3        | 31        | 14     |
-+----+-------+-----------------------------------------------------+----------+-----------+--------+
-| 4  | 1550  | Statistical Thinking in Python (Part 2)             | 10       | 51        | 15     |
-+----+-------+-----------------------------------------------------+----------+-----------+--------+
-| 5  | 13369 | Writing Efficient Python Code                       | 1        | 38        | 15     |
-+----+-------+-----------------------------------------------------+----------+-----------+--------+
-| 6  | 15108 | Introduction to TensorFlow in Python                | 3        | 36        | 15     |
-+----+-------+-----------------------------------------------------+----------+-----------+--------+
-| 7  | 15974 | Unit Testing for Data Science in Python             | 0        | 38        | 17     |
-+----+-------+-----------------------------------------------------+----------+-----------+--------+
-| 8  | 14336 | Feature Engineering for Machine Learning in Python  | 2        | 37        | 16     |
-+----+-------+-----------------------------------------------------+----------+-----------+--------+
-| 9  | 16921 | Image Processing in Python                          | 1        | 38        | 16     |
-+----+-------+-----------------------------------------------------+----------+-----------+--------+
-| 10 | 15162 | Model Validation in Python                          | 2        | 32        | 15     |
-+----+-------+-----------------------------------------------------+----------+-----------+--------+
++--------+------------------------------------------+------------+------------+------------+
+| ID     | Title                                    | Datasets   | Exercises  | Videos     |
++--------+------------------------------------------+------------+------------+------------+
+| 1      | Introduction to Python                   | 2          | 46         | 11         |
++--------+------------------------------------------+------------+------------+------------+
+| 2      | Introduction to SQL                      | 1          | 40         | 1          |
++--------+------------------------------------------+------------+------------+------------+
+| 3      | Intermediate Python                      | 3          | 69         | 18         |
++--------+------------------------------------------+------------+------------+------------+
+| 4      | Introduction to Data Science in Python   | 0          | 31         | 13         |
++--------+------------------------------------------+------------+------------+------------+
+| 5      | Data Science for Everyone                | 0          | 33         | 15         |
++--------+------------------------------------------+------------+------------+------------+
+| 6      | Joining Data in SQL                      | 3          | 40         | 13         |
++--------+------------------------------------------+------------+------------+------------+
+| 7      | Data Manipulation with pandas            | 4          | 41         | 15         |
++--------+------------------------------------------+------------+------------+------------+
+| 8      | Supervised Learning with scikit-learn    | 7          | 37         | 17         |
++--------+------------------------------------------+------------+------------+------------+
+| 9      | Machine Learning for Everyone            | 0          | 25         | 12         |
++--------+------------------------------------------+------------+------------+------------+
+| 10     | Python Data Science Toolbox (Part 1)     | 1          | 34         | 12         |
++--------+------------------------------------------+------------+------------+------------+
 ```
 
 Now, you can download any of the courses/tracks with:
@@ -185,10 +189,10 @@ Now, you can download any of the courses/tracks with:
 datacamp download id1 id2 id3
 ```
 
-For example to download the first and fifth course, run:
+For example to download the first and second course, run:
 
 ```
-datacamp download 799 13369
+datacamp download 1 2
 ```
 
 - To download all your completed courses, run:
