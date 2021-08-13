@@ -83,8 +83,11 @@ class Session:
     def get_json(self, url):
         page = self.get(url)
         page = self.driver.find_element(By.TAG_NAME, "pre").text
-        parsed_json = json.loads(page)
+        parsed_json = self.to_json(page)
         return parsed_json
+
+    def to_json(self, page: str):
+        return json.loads(page)
 
     def get_element_by_id(self, id: str) -> WebElement:
         return self.driver.find_element(By.ID, id)

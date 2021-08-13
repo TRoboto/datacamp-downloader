@@ -78,6 +78,7 @@ class Datacamp:
         self.has_active_subscription = False
         self.loggedin = False
         self.login_data = None
+        self.profile_data = None
 
         self.courses = []
         self.tracks = []
@@ -144,6 +145,16 @@ class Datacamp:
         self.token = token
         self.session.add_token(token)
         self._set_profile()
+
+    def get_profile_data(self):
+        if not self.profile_data:
+            profile = self.session.get(PROFILE_URL.format(slug=self.login_data["slug"]))
+            self.session.driver.minimize_window()
+            soup = BeautifulSoup(profile, "html.parser")
+            self.profile_data = self.session.to_json(
+                soup.find(id="__NEXT_DATA__").string
+            )
+        return self.profile_data
 
     @login_required
     @animate_wait
@@ -366,23 +377,10 @@ class Datacamp:
 
         self.tracks = []
 
-        profile = self.session.get(PROFILE_URL.format(slug=self.login_data["slug"]))
-        self.session.driver.minimize_window()
-
-        soup = BeautifulSoup(profile, "html.parser")
-        tracks_title = soup.findAll("div", {"class": "track-block__main"})
-        tracks_link = soup.findAll(
-            "a", {"href": re.compile("^/tracks"), "class": "shim"}
-        )
-        for i in range(len(tracks_link)):
-            link = "https://www.datacamp.com" + tracks_link[i]["href"]
-            self.tracks.append(
-                Track(
-                    f"t{i + 1}",
-                    tracks_title[i].getText().replace("\n", " ").strip(),
-                    link,
-                )
-            )
+        data = self.get_profile_data()
+        completed_tracks = data["props"]["pageProps"]["completed_tracks"]
+        for i, track in enumerate(completed_tracks, 1):
+            self.tracks.append(Track(f"t{i}", track["title"].strip(), track["url"]))
         all_courses = set()
         # add courses
         for track in self.tracks:
