@@ -3,7 +3,7 @@ name: Upload Python Package
 on:
   push:
     tags:
-      - "v*"
+      - "V*"
 
 jobs:
   deploy:
