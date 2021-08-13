@@ -178,12 +178,13 @@ class Datacamp:
         table.add_row(["ID", "Title", "Datasets", "Exercises", "Videos"])
         table_so_far = table.draw()
         Logger.clear_and_print(table_so_far)
-        for course in self.get_completed_courses(refresh):
+        for i, course in enumerate(self.get_completed_courses(refresh), 1):
             all_exercises_count = sum([c.nb_exercises for c in course.chapters])
             videos_count = sum([c.number_of_videos for c in course.chapters])
+            course.order = i
             table.add_row(
                 [
-                    course.order,
+                    i,
                     course.title,
                     len(course.datasets),
                     all_exercises_count - videos_count,
@@ -405,11 +406,15 @@ class Datacamp:
 
         self.courses = []
 
-        for course in self._get_courses_from_link(
-            PROFILE_URL.format(slug=self.login_data["slug"])
-        ):
-            self.courses.append(course)
-            yield course
+        data = self.get_profile_data()
+        completed_courses = data["props"]["pageProps"]["completed_courses"]
+        for course in completed_courses:
+            fetched_course = self.get_course(course["id"])
+            if not fetched_course:
+                continue
+            self.session.driver.minimize_window()
+            self.courses.append(fetched_course)
+            yield fetched_course
 
         if not self.courses:
             return []
@@ -459,7 +464,6 @@ class Datacamp:
                 continue
             course = self.get_course(int(id))
             if course:
-                course.order = i
                 yield course
 
     def _get_chapter_name(self, chapter: Chapter):
