@@ -122,7 +122,9 @@ class Datacamp:
 
         submit_button = self.session.get_element_by_xpath('//input[@tabindex="4"]')
         submit_button.click()
-        self.session.wait_for_element_by_css_selector("#__next", "#flash_messages")
+        self.session.wait_for_element_by_css_selector(
+            "#mfe-composer-layout", "#flash_messages"
+        )
 
         page = self.session.driver.page_source
         if not page or "/users/sign_up" in page:
