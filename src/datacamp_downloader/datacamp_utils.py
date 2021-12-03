@@ -12,7 +12,7 @@ from .constants import (
     LANGMAP,
     LOGIN_DETAILS_URL,
     LOGIN_URL,
-    PROFILE_URL,
+    PROFILE_DATA_URL,
     PROGRESS_API,
     VIDEO_DETAILS_API,
 )
@@ -148,12 +148,10 @@ class Datacamp:
 
     def get_profile_data(self):
         if not self.profile_data:
-            profile = self.session.get(PROFILE_URL.format(slug=self.login_data["slug"]))
-            self.session.driver.minimize_window()
-            soup = BeautifulSoup(profile, "html.parser")
-            self.profile_data = self.session.to_json(
-                soup.find(id="__NEXT_DATA__").string
+            self.profile_data = self.session.get_json(
+                PROFILE_DATA_URL.format(slug=self.login_data["slug"])
             )
+            self.session.driver.minimize_window()
         return self.profile_data
 
     @login_required
@@ -379,7 +377,7 @@ class Datacamp:
         self.tracks = []
 
         data = self.get_profile_data()
-        completed_tracks = data["props"]["pageProps"]["completed_tracks"]
+        completed_tracks = data["completed_tracks"]
         for i, track in enumerate(completed_tracks, 1):
             self.tracks.append(Track(f"t{i}", track["title"].strip(), track["url"]))
         all_courses = set()
@@ -407,7 +405,7 @@ class Datacamp:
         self.courses = []
 
         data = self.get_profile_data()
-        completed_courses = data["props"]["pageProps"]["completed_courses"]
+        completed_courses = data["completed_courses"]
         for course in completed_courses:
             fetched_course = self.get_course(course["id"])
             if not fetched_course:
