@@ -7,6 +7,7 @@ LOGIN_DETAILS_URL = "https://www.datacamp.com/api/users/signed_in"
 SESSION_FILE = tempfile.gettempdir() + "/.datacamp.v3"
 
 PROFILE_URL = "https://www.datacamp.com/profile/{slug}"
+PROFILE_DATA_URL = "https://www.datacamp.com/api/public/users/{slug}"
 COURSE_DETAILS_API = "https://campus-api.datacamp.com/api/courses/{id}/"
 EXERCISE_DETAILS_API = "https://campus-api.datacamp.com/api/exercise/{id}"
 VIDEO_DETAILS_API = "https://projector.datacamp.com/api/videos/{hash}"

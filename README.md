@@ -4,7 +4,7 @@
 [![PyPI version](https://badge.fury.io/py/datacamp-downloader.svg)](https://pypi.org/project/datacamp-downloader/)
 [![Documentation Status](https://readthedocs.org/projects/ansicolortags/badge/?version=latest)](https://github.com/TRoboto/datacamp-downloader/blob/master/docs.md)
 
-[![Downloads](https://pepy.tech/badge/datacamp-downloader/week)](https://pepy.tech/project/datacamp-downloader)
+[![Downloads](https://pepy.tech/badge/datacamp-downloader)](https://pepy.tech/project/datacamp-downloader)
 [![GitHub stars](https://img.shields.io/github/stars/TRoboto/datacamp-downloader)](https://github.com/TRoboto/datacamp-downloader/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/TRoboto/datacamp-downloader)](https://github.com/TRoboto/datacamp-downloader/network/members)
 [![GitHub contributors](https://img.shields.io/github/contributors/TRoboto/datacamp-downloader)](https://github.com/TRoboto/datacamp-downloader/graphs/contributors)
@@ -27,7 +27,8 @@
 
 ## Update
 
-Datacamp Downloader V3.1 is now available. The major change is that the tool now uses selenium for the backend. See changelog for version [3.0](https://github.com/TRoboto/datacamp-downloader/pull/39) and [3.1](https://github.com/TRoboto/datacamp-downloader/pull/42).
+Datacamp Downloader V3.2 is now available. The major change is that the tool now uses selenium for the backend. See changelog for version [3.0](https://github.com/TRoboto/datacamp-downloader/pull/39), [3.1](https://github.com/TRoboto/datacamp-downloader/pull/42)
+and [3.2](https://github.com/TRoboto/datacamp-downloader/pull/47).
 
 ## Description
 
@@ -51,12 +52,6 @@ If you use pip, you can install datacamp-downloader with:
 
 ```
 pip install datacamp-downloader
-```
-
-If you want to install the previous version that doesn't use `selenium`, run:
-
-```
-pip install datacamp-downloader==2.2
 ```
 
 ### From source
