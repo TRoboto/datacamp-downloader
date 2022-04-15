@@ -67,7 +67,7 @@ pip install git+https://github.com/TRoboto/datacamp-downloader.git
 To allow command autocompletion with `[TAB][TAB]`, run:
 
 ```
-datacamp --install-autocompletion
+datacamp --install-completion [bash|zsh|fish|powershell|pwsh]
 ```
 
 Then restart the terminal.
