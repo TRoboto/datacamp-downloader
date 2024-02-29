@@ -483,15 +483,15 @@ class Datacamp:
             return
         Logger.info("Hi, " + (data["first_name"] or data["last_name"] or data["email"]))
 
-        if data["has_active_subscription"]:
+        if data["active_products"]:
             Logger.info("Active subscription found")
         else:
             Logger.warning("No active subscription found")
 
         self.loggedin = True
         self.login_data = data
-        self.has_active_subscription = data["has_active_subscription"]
-
+        self.has_active_subscription = data["active_products"]
+        
         self.session.save()
 
     def _get_subtitle(self, sub, video: Video):
