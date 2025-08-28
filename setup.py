@@ -8,10 +8,10 @@ with open("requirements.txt", "r", encoding="utf-8") as fh:
 
 setup(
     name="datacamp-downloader",
-    version="3.2",
+    version="3.3.0",
     author="Mohammad Al-Fetyani",
     author_email="m4bh@hotmail.com",
-    description="Download your completed courses on Datacamp easily!",
+    description="Download your completed courses on Datacamp easily! (Updated for modern Chrome compatibility)",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/TRoboto/datacamp-downloader",
@@ -28,6 +28,6 @@ setup(
     setup_requires=["setuptools-git"],
     packages=find_packages(where="src"),
     include_package_data=True,
-    python_requires=">=3.6",
+    python_requires=">=3.8",
     entry_points={"console_scripts": ["datacamp=datacamp_downloader.downloader:app"]},
 )
