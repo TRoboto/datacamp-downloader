@@ -3,11 +3,13 @@ import os
 import pickle
 from pathlib import Path
 
-import undetected_chromedriver.v2 as uc
+import undetected_chromedriver as uc
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.service import Service
 
 from .constants import HOME_PAGE, SESSION_FILE
 from .datacamp_utils import Datacamp
@@ -39,7 +41,8 @@ class Session:
     def _setup_driver(self, headless=True):
         options = uc.ChromeOptions()
         options.headless = headless
-        # just some options passing in to skip annoying popups
+        
+        # Modern Chrome options for better compatibility
         options.add_argument("--no-first-run")
         options.add_argument("--no-service-autorun")
         options.add_argument("--password-store=basic")
@@ -49,13 +52,32 @@ class Session:
         options.add_argument("--disable-infobars")
         options.add_argument("--disable-popup-blocking")
         options.add_argument("--disable-gpu")
-        # options.add_argument("--window-position=-10000,10000")
         options.add_argument("--disable-notifications")
         options.add_argument("--content-shell-hide-toolbar")
         options.add_argument("--top-controls-hide-threshold")
         options.add_argument("--force-app-mode")
         options.add_argument("--hide-scrollbars")
-        self.driver = uc.Chrome(options=options)
+        
+        # Additional modern options for better compatibility
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-web-security")
+        options.add_argument("--allow-running-insecure-content")
+        options.add_argument("--disable-features=VizDisplayCompositor")
+        options.add_argument("--disable-background-timer-throttling")
+        options.add_argument("--disable-backgrounding-occluded-windows")
+        options.add_argument("--disable-renderer-backgrounding")
+        options.add_argument("--disable-field-trial-config")
+        options.add_argument("--disable-ipc-flooding-protection")
+        
+        # Use webdriver-manager to automatically handle ChromeDriver
+        try:
+            # Try to use webdriver-manager for automatic ChromeDriver management
+            service = Service(ChromeDriverManager().install())
+            self.driver = uc.Chrome(service=service, options=options)
+        except Exception as e:
+            # Fallback to undetected-chromedriver's default behavior
+            print(f"Warning: Could not use webdriver-manager: {e}")
+            self.driver = uc.Chrome(options=options)
 
     def start(self, headless=False):
         if hasattr(self, "driver"):
@@ -63,7 +85,8 @@ class Session:
         self._setup_driver(headless)
         self.driver.get(HOME_PAGE)
         self.bypass_cloudflare(HOME_PAGE)
-        if self.datacamp.token:
+        # Add token if it exists in the datacamp object
+        if hasattr(self.datacamp, 'token') and self.datacamp.token:
             self.add_token(self.datacamp.token)
 
     def bypass_cloudflare(self, url):
