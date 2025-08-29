@@ -8,7 +8,7 @@ with open("requirements.txt", "r", encoding="utf-8") as fh:
 
 setup(
     name="datacamp-downloader",
-    version="3.2",
+    version="3.3",
     author="Mohammad Al-Fetyani",
     author_email="m4bh@hotmail.com",
     description="Download your completed courses on Datacamp easily!",
