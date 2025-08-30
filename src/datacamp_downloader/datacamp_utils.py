@@ -1,6 +1,12 @@
 import re
 import sys
 from pathlib import Path
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+import traceback
 
 from bs4 import BeautifulSoup
 
@@ -85,54 +91,145 @@ class Datacamp:
 
         self.not_found_courses = set()
 
+
     @animate_wait
     @try_except_request
     def login(self, username, password):
+        # quick guard
         if username == self.username and self.password == password and self.loggedin:
             Logger.info("Already logged in!")
             return
 
         self.init()
-
         self.username = username
         self.password = password
 
+        # open signin page (this calls self.session.start() internally)
         req = self.session.get(LOGIN_URL)
         if not req:
             Logger.error("Cannot access datacamp website!")
             return
-        self.session.wait_for_element_by_css_selector("#user_email")
-        email = self.session.get_element_by_id("user_email")
-        email.send_keys(username)
-        # click remember me
-        # self.session.click_element("remember_me_modal")
-        next_button = self.session.get_element_by_xpath('//button[@tabindex="2"]')
-        next_button.click()
 
-        # self.session.wait_for_element("user_password")
-        self.session.wait_for_element_by_css_selector(
-            "#user_password", "#flash_messages"
-        )
-        password_field = self.session.get_element_by_id("user_password")
         try:
-            password_field.send_keys(password)
+            # Wait for the email input to be present and clickable
+            wd = WebDriverWait(self.session.driver, 15)
+            wd.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#user_email")))
+
+            email = self.session.driver.find_element(By.ID, "user_email")
+            email.clear()
+            email.click()
+            email.send_keys(username)
+            Logger.info("Filled email")
+
+        except Exception as e:
+            Logger.error(f"Cannot find/fill email field: {e}")
+            # save screenshot for debugging
+            try:
+                self.session.driver.save_screenshot("login_error_email.png")
+            except Exception:
+                pass
+            return
+
+        # Click the next/continue button (try a couple of selectors)
+        try:
+            try:
+                next_button = self.session.driver.find_element(By.XPATH, '//button[@tabindex="2"]')
+            except Exception:
+                # fallback: any submit button in a form
+                next_button = self.session.driver.find_element(By.CSS_SELECTOR, "button[type='submit'], input[type='submit']")
+            next_button.click()
+        except Exception as e:
+            Logger.error(f"Cannot click next/continue button: {e}")
+            try:
+                self.session.driver.save_screenshot("login_error_next.png")
+            except Exception:
+                pass
+            return
+
+        # Wait for password input to be clickable
+        try:
+            wd = WebDriverWait(self.session.driver, 15)
+            password_field = wd.until(EC.element_to_be_clickable((By.ID, "user_password")))
+        except Exception as e:
+            Logger.error(f"Password field not found or not clickable (maybe SSO-only login?): {e}")
+            try:
+                self.session.driver.save_screenshot("login_error_no_password.png")
+            except Exception:
+                pass
+            return
+
+        # Try to enter password robustly: ActionChains -> direct send_keys -> JS fallback
+        try:
+            # ActionChains to focus and type
+            ActionChains(self.session.driver).move_to_element(password_field).click().send_keys(password).perform()
+            Logger.info("Password typed via ActionChains")
+        except Exception as e1:
+            try:
+                password_field.clear()
+                password_field.send_keys(password)
+                Logger.info("Password typed via send_keys")
+            except Exception as e2:
+                # Last resort: set value via JS
+                try:
+                    self.session.driver.execute_script("arguments[0].value = arguments[1]; arguments[0].dispatchEvent(new Event('input'));", password_field, password)
+                    Logger.info("Password set via JS")
+                except Exception as e3:
+                    Logger.error("Cannot type password into the field. Details:\n" + "\n".join(map(str, [e1, e2, e3])))
+                    try:
+                        self.session.driver.save_screenshot("login_error_password.png")
+                    except Exception:
+                        pass
+                    return
+
+        # Submit the form (try button or ENTER)
+        try:
+            # Try to find the submit button
+            try:
+                submit_button = self.session.driver.find_element(By.XPATH, '//input[@tabindex="4"]')
+                submit_button.click()
+            except Exception:
+                # fallback: hit Enter on password field
+                password_field.send_keys(Keys.RETURN)
+            Logger.info("Submitted login form, waiting for result...")
+        except Exception as e:
+            Logger.error(f"Cannot submit login form: {e}")
+            try:
+                self.session.driver.save_screenshot("login_error_submit.png")
+            except Exception:
+                pass
+            return
+
+        # wait for page to load and check result
+        try:
+            # wait for either the profile element, or error/flash messages
+            WebDriverWait(self.session.driver, 10).until(
+                lambda d: "/users/sign_up" not in d.page_source and "Invalid" not in d.page_source
+            )
         except Exception:
-            Logger.error("Incorrect email!")
+            # Not a fatal error here, proceed to check token / page content
+            pass
+
+        # obtain token cookie if login succeeded
+        try:
+            token_cookie = self.session.driver.get_cookie("_dct")
+            if not token_cookie:
+                Logger.error("Login did not produce a _dct cookie (likely login failed or SSO-only).")
+                try:
+                    self.session.driver.save_screenshot("login_no_token.png")
+                except Exception:
+                    pass
+                return
+            self.token = token_cookie["value"]
+            self._set_profile()
+            Logger.info("Login flow completed")
+        except Exception as e:
+            Logger.error("Error after login attempt: " + str(e))
+            try:
+                self.session.driver.save_screenshot("login_error_final.png")
+            except Exception:
+                pass
             return
 
-        submit_button = self.session.get_element_by_xpath('//input[@tabindex="4"]')
-        submit_button.click()
-        self.session.wait_for_element_by_css_selector(
-            "#mfe-composer-layout", "#flash_messages"
-        )
-
-        page = self.session.driver.page_source
-        if not page or "/users/sign_up" in page:
-            Logger.error("Incorrect password")
-            return
-
-        self.token = self.session.driver.get_cookie("_dct")["value"]
-        self._set_profile()
 
     @animate_wait
     @try_except_request
@@ -481,16 +578,24 @@ class Datacamp:
         except Exception as e:
             Logger.error("Incorrect input token!")
             return
-        Logger.info("Hi, " + (data["first_name"] or data["last_name"] or data["email"]))
 
-        if data["has_active_subscription"]:
+        Logger.info("Hi, " + (data.get("first_name") or data.get("last_name") or data.get("email")))
+
+        # New API: 'has_active_subscription' may not exist anymore
+        has_sub = False
+        if "has_active_subscription" in data:
+            has_sub = data["has_active_subscription"]
+        elif "active_products" in data:
+            has_sub = len(data["active_products"]) > 0
+
+        if has_sub:
             Logger.info("Active subscription found")
         else:
             Logger.warning("No active subscription found")
 
         self.loggedin = True
         self.login_data = data
-        self.has_active_subscription = data["has_active_subscription"]
+        self.has_active_subscription = has_sub
 
         self.session.save()
 
@@ -542,4 +647,22 @@ class Datacamp:
         if "error" in res:
             self.not_found_courses.add(id)
             raise ValueError()
-        return Course(**res)
+
+        # Normalize time field
+        time_needed = res.get("time_needed")
+        if not time_needed and res.get("time_needed_in_hours") is not None:
+            time_needed = f"{res['time_needed_in_hours']} hours"
+        elif not time_needed and res.get("duration_minutes") is not None:
+            hours = res["duration_minutes"] / 60
+            time_needed = f"{hours:.1f} hours"
+
+        return Course(
+            id=res["id"],
+            title=res["title"],
+            description=res.get("description", ""),
+            slug=res.get("slug"),
+            datasets=res.get("datasets", []),
+            chapters=res.get("chapters", []),
+            time_needed=time_needed,
+        )
+

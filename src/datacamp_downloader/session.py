@@ -1,9 +1,23 @@
 import json
 import os
 import pickle
+import json
+from webdriver_manager.chrome import ChromeDriverManager
+import re
+from bs4 import BeautifulSoup
+import os
 from pathlib import Path
 
-import undetected_chromedriver.v2 as uc
+# Prefer top-level undetected_chromedriver (works with Selenium 4); fallback to v2.
+try:
+    import undetected_chromedriver as uc
+except Exception:
+    import undetected_chromedriver.v2 as uc
+
+# Selenium helper imports (we use these to create Service/options safely)
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service as ChromeService
+from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
@@ -37,25 +51,53 @@ class Session:
             pass
 
     def _setup_driver(self, headless=True):
-        options = uc.ChromeOptions()
-        options.headless = headless
-        # just some options passing in to skip annoying popups
+        try:
+            options = uc.ChromeOptions()
+        except Exception:
+            options = ChromeOptions()
+
+        try:
+            options.headless = headless
+        except Exception:
+            if headless:
+                options.add_argument("--headless=new")
+
+        # existing flags...
         options.add_argument("--no-first-run")
         options.add_argument("--no-service-autorun")
         options.add_argument("--password-store=basic")
         options.add_argument("--disable-extensions")
         options.add_argument("--disable-browser-side-navigation")
-        options.add_argument("--disable-dev-shm-usage")
         options.add_argument("--disable-infobars")
         options.add_argument("--disable-popup-blocking")
         options.add_argument("--disable-gpu")
-        # options.add_argument("--window-position=-10000,10000")
         options.add_argument("--disable-notifications")
         options.add_argument("--content-shell-hide-toolbar")
         options.add_argument("--top-controls-hide-threshold")
         options.add_argument("--force-app-mode")
         options.add_argument("--hide-scrollbars")
-        self.driver = uc.Chrome(options=options)
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
+
+        # get the absolute path of the installed package
+        package_dir = os.path.dirname(os.path.abspath(__file__))
+        
+        # create a chrome profile folder inside the package directory
+        profile_dir = os.path.join(package_dir, "dc_chrome_profile")
+
+        # make sure it exists
+        os.makedirs(profile_dir, exist_ok=True)
+
+        # tell Chrome to use it
+        options.add_argument(f"--user-data-dir={profile_dir}")
+
+
+        service = ChromeService(executable_path=ChromeDriverManager().install())
+        try:
+            self.driver = uc.Chrome(service=service, options=options)
+            return
+        except Exception:
+            self.driver = webdriver.Chrome(service=service, options=options)
 
     def start(self, headless=False):
         if hasattr(self, "driver"):
@@ -80,11 +122,24 @@ class Session:
         self.bypass_cloudflare(url)
         return self.driver.page_source
 
+
+
     def get_json(self, url):
-        page = self.get(url)
-        page = self.driver.find_element(By.TAG_NAME, "pre").text
-        parsed_json = self.to_json(page)
-        return parsed_json
+        page = self.get(url).strip()
+
+        # Parse with BeautifulSoup
+        soup = BeautifulSoup(page, "html.parser")
+        pre = soup.find("pre")
+
+        if pre:
+            page = pre.text  # ✅ grab only the JSON inside <pre>
+        else:
+            page = page  # maybe raw JSON already
+
+        # Debug
+        #print("\n\n[DEBUG get_json cleaned] First 200 chars:\n", page[:200], "\n\n")
+
+        return json.loads(page)
 
     def to_json(self, page: str):
         return json.loads(page)

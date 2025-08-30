@@ -149,132 +149,48 @@ class Track:
 
 
 class Course:
-    order: int
-    id: int
-    title: str
-    description: str
-    short_description: str
-    author_field: None
-    author_bio: None
-    author_image: str
-    nb_of_subscriptions: int
-    slug: str
-    image_url: str
-    image_thumbnail_url: str
-    last_updated_on: str
-    link: str
-    should_cache: bool
-    type: str
-    difficulty_level: int
-    state: str
-    university: None
-    sharing_links: SharingLinks
-    marketing_video: str
-    programming_language: str
-    paid: bool
-    time_needed: None
-    xp: int
-    topic_id: int
-    technology_id: int
-    reduced_outline: None
-    runtime_config: None
-    lti_only: bool
-    instructors: List[Instructor]
-    collaborators: List[Collaborator]
-    datasets: List[Dataset]
-    tracks: List[Track]
-    prerequisites: List[Any]
-    time_needed_in_hours: int
-    seo_title: str
-    seo_description: str
-    archived_at: None
-    original_image_url: str
-    external_slug: str
-    chapters: List[Chapter]
+    def __init__(self,
+                 id: int,
+                 title: str,
+                 description: str = "",
+                 slug: str = None,
+                 chapters: List[dict] = None,
+                 datasets: List[dict] = None,
+                 time_needed_in_hours: int = None,
+                 **kwargs) -> None:
+        """
+        Flexible Course constructor that works with the new API.
+        Extra fields are captured by **kwargs so we don't break.
+        """
 
-    def __init__(
-        self,
-        id: int,
-        title: str,
-        description: str,
-        short_description: str,
-        author_field: None,
-        author_bio: None,
-        author_image: str,
-        nb_of_subscriptions: int,
-        slug: str,
-        image_url: str,
-        image_thumbnail_url: str,
-        last_updated_on: str,
-        link: str,
-        should_cache: bool,
-        type: str,
-        difficulty_level: int,
-        state: str,
-        university: None,
-        sharing_links: SharingLinks,
-        marketing_video: str,
-        programming_language: str,
-        paid: bool,
-        time_needed: None,
-        xp: int,
-        topic_id: int,
-        technology_id: int,
-        reduced_outline: None,
-        runtime_config: None,
-        lti_only: bool,
-        instructors: List[Instructor],
-        collaborators: List[Collaborator],
-        datasets: List[Dataset],
-        tracks: List[Track],
-        prerequisites: List[Any],
-        time_needed_in_hours: int,
-        seo_title: str,
-        seo_description: str,
-        archived_at: None,
-        original_image_url: str,
-        external_slug: str,
-        chapters: List[Chapter],
-        **kwargs
-    ) -> None:
         self.id = id
         self.title = title
         self.description = description
-        self.short_description = short_description
-        self.author_field = author_field
-        self.author_bio = author_bio
-        self.author_image = author_image
-        self.nb_of_subscriptions = nb_of_subscriptions
-        self.slug = slug
-        self.image_url = image_url
-        self.image_thumbnail_url = image_thumbnail_url
-        self.last_updated_on = last_updated_on
-        self.link = link
-        self.should_cache = should_cache
-        self.type = type
-        self.difficulty_level = difficulty_level
-        self.state = state
-        self.university = university
-        self.sharing_links = sharing_links
-        self.marketing_video = marketing_video
-        self.programming_language = programming_language
-        self.paid = paid
-        self.time_needed = time_needed
-        self.xp = xp
-        self.topic_id = topic_id
-        self.technology_id = technology_id
-        self.reduced_outline = reduced_outline
-        self.runtime_config = runtime_config
-        self.lti_only = lti_only
-        self.instructors = [Instructor(**c) for c in instructors]
-        self.collaborators = [Collaborator(**c) for c in collaborators]
-        self.datasets = [Dataset(**c) for c in datasets]
-        self.tracks = [Track(**c) for c in tracks]
-        self.prerequisites = prerequisites
-        self.time_needed_in_hours = time_needed_in_hours
-        self.seo_title = seo_title
-        self.seo_description = seo_description
-        self.archived_at = archived_at
-        self.original_image_url = original_image_url
-        self.external_slug = external_slug
-        self.chapters = [Chapter(**c) for c in chapters]
+        self.slug = slug or str(id)
+
+        # build nested objects safely
+        self.chapters = [Chapter(**c) for c in (chapters or [])]
+        self.datasets = [Dataset(**c) for c in (datasets or [])]
+
+        # support both old/new API keys
+        self.time_needed = kwargs.get("time_needed") or time_needed_in_hours
+        self.xp = kwargs.get("xp", 0)
+        self.difficulty_level = kwargs.get("difficulty_level", None)
+        self.state = kwargs.get("state", "unknown")
+
+        # optional stuff
+        self.short_description = kwargs.get("short_description", "")
+        self.slug = kwargs.get("slug", slug or str(id))
+        self.image_url = kwargs.get("image_url", "")
+        self.image_thumbnail_url = kwargs.get("image_thumbnail_url", "")
+        self.last_updated_on = kwargs.get("last_updated_on", "")
+        self.link = kwargs.get("link", "")
+        self.programming_language = kwargs.get("programming_language", "unknown")
+
+        # fallback empty lists
+        self.instructors = [Instructor(**c) for c in kwargs.get("instructors", [])]
+        self.collaborators = [Collaborator(**c) for c in kwargs.get("collaborators", [])]
+        self.tracks = [Track(**c) for c in kwargs.get("tracks", [])]
+
+        # absorb anything else without crashing
+        self.extra = kwargs
