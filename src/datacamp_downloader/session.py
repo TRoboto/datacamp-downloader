@@ -5,7 +5,7 @@ import json
 from webdriver_manager.chrome import ChromeDriverManager
 import re
 from bs4 import BeautifulSoup
-
+import os
 from pathlib import Path
 
 # Prefer top-level undetected_chromedriver (works with Selenium 4); fallback to v2.
@@ -68,7 +68,6 @@ class Session:
         options.add_argument("--password-store=basic")
         options.add_argument("--disable-extensions")
         options.add_argument("--disable-browser-side-navigation")
-        options.add_argument("--disable-dev-shm-usage")
         options.add_argument("--disable-infobars")
         options.add_argument("--disable-popup-blocking")
         options.add_argument("--disable-gpu")
@@ -77,11 +76,21 @@ class Session:
         options.add_argument("--top-controls-hide-threshold")
         options.add_argument("--force-app-mode")
         options.add_argument("--hide-scrollbars")
-
-        # 🔑 extra stability flags from test_chrome.py
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
-        options.add_argument(r"--user-data-dir=C:\Users\mikel\Desktop\temp\DataCamp Test\dc_chrome_profile")
+
+        # get the absolute path of the installed package
+        package_dir = os.path.dirname(os.path.abspath(__file__))
+        
+        # create a chrome profile folder inside the package directory
+        profile_dir = os.path.join(package_dir, "dc_chrome_profile")
+
+        # make sure it exists
+        os.makedirs(profile_dir, exist_ok=True)
+
+        # tell Chrome to use it
+        options.add_argument(f"--user-data-dir={profile_dir}")
+
 
         service = ChromeService(executable_path=ChromeDriverManager().install())
         try:

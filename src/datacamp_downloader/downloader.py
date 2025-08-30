@@ -8,7 +8,7 @@ from . import active_session, datacamp
 from .helper import Logger
 from .templates.lang import Language
 
-__version__ = "3.1.0"
+__version__ = "3.3.0"
 
 
 def version_callback(value: bool):

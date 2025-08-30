@@ -91,8 +91,7 @@ class Datacamp:
 
         self.not_found_courses = set()
 
-    @animate_wait
-    @try_except_request
+
     @animate_wait
     @try_except_request
     def login(self, username, password):
